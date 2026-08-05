@@ -1483,6 +1483,23 @@ const fillEquestrianLeft=fillEquestrian, fillEquestrianRight=fillEquestrian;
 // ── QR CODE PREVIEW & RENDER ────────────────────────────────────────────────
 let _qrInstance = null;
 
+// Cache ColorThief.getPalette results per (Image, N). Keyed by Image via
+// WeakMap so entries are collected when the Image is; each inner Map holds
+// the palette arrays for the palette sizes requested against that Image.
+// Cross-render hits are limited by the fact that generatePoster creates a
+// new Image() every run, but this still eliminates redundant work when
+// multiple helpers query the same Image in a single render.
+const _paletteCache = new WeakMap();
+function getPaletteCached(img, n) {
+  let byN = _paletteCache.get(img);
+  if (!byN) { byN = new Map(); _paletteCache.set(img, byN); }
+  const cached = byN.get(n);
+  if (cached) return cached;
+  const p = new ColorThief().getPalette(img, n);
+  byN.set(n, p);
+  return p;
+}
+
 function updateQrPreview(url) {
   const wrap = document.getElementById('qrPreviewWrap');
   const box  = document.getElementById('qrPreviewBox');
@@ -2499,8 +2516,7 @@ function hexToRgbArr(hex) {
 
 function extractBrandPaletteFromImg(imgEl) {
   try {
-    const ct = new ColorThief();
-    const palette = ct.getPalette(imgEl, 12);
+    const palette = getPaletteCached(imgEl, 12);
     function lumC(c) { return (0.299*c[0] + 0.587*c[1] + 0.114*c[2]) / 255; }
     function satC(c) { const mx=Math.max(c[0],c[1],c[2]), mn=Math.min(c[0],c[1],c[2]); return mx===0?0:(mx-mn)/mx; }
     const filtered = palette.filter(c => { const l=lumC(c); return l>0.04 && l<0.96; });
@@ -2713,7 +2729,7 @@ function hideBrandPaletteStrip() {
 // Get dominant color from an image element
 function getDominantColor(img) {
   try {
-    const ct=new ColorThief(); const p=ct.getPalette(img,6);
+    const p = getPaletteCached(img, 6);
     // Pick most saturated non-too-dark color
     let best=p[0], bestScore=-1;
     for(const [r,g,b] of p){
@@ -4394,9 +4410,8 @@ function generateStandardPoster() {
   function doRender(preloadedPrizeImg) {
     const img=new Image();
     img.onload=()=>{
-      const colorThief=new ColorThief();
       let palette;
-      try { palette=colorThief.getPalette(img,8); } catch(_e) { palette=[[40,60,120],[80,100,160],[60,80,140],[100,120,180],[120,140,200],[50,70,130],[90,110,170],[70,90,150]]; }
+      try { palette = getPaletteCached(img, 8); } catch(_e) { palette=[[40,60,120],[80,100,160],[60,80,140],[100,120,180],[120,140,200],[50,70,130],[90,110,170],[70,90,150]]; }
       function getSat(r,g,b){const mx=Math.max(r,g,b),mn=Math.min(r,g,b);return mx===0?0:(mx-mn)/mx;}
       function getBri(r,g,b){return Math.max(r,g,b)/255;}
       let totalSat=0;
@@ -5152,7 +5167,7 @@ function generateSportPoster() {
       accentColor = getDominantColor(img);
       // Extract full palette for lightest/darkest colour (text stroke and soccer shape stroke)
       let logoPalette=[[80,80,80]];
-      try { logoPalette=new ColorThief().getPalette(img,8); } catch(e){}
+      try { logoPalette = getPaletteCached(img, 8); } catch(e){}
       lightestLum=-1;
       let darkestLum=2;
       for(const [r,g,b] of logoPalette){
