@@ -1483,6 +1483,53 @@ const fillEquestrianLeft=fillEquestrian, fillEquestrianRight=fillEquestrian;
 // ── QR CODE PREVIEW & RENDER ────────────────────────────────────────────────
 let _qrInstance = null;
 
+// ── DOM cache & form-state reader ───────────────────────────────────────────
+// dom(id) memoizes document.getElementById so repeated lookups in a render
+// don't re-walk the DOM. readFormState() is the single source of truth for
+// form → data — every renderer/exporter reads through here rather than
+// scattering document.getElementById calls across the render path.
+const _domCache = new Map();
+function dom(id) {
+  let el = _domCache.get(id);
+  if (el && el.isConnected) return el;
+  el = document.getElementById(id);
+  if (el) _domCache.set(id, el);
+  return el;
+}
+
+function readFormState() {
+  const prizeInput = dom('prizeImageUpload');
+  const packages = [];
+  document.querySelectorAll('.package-row').forEach(r => {
+    const t = r.querySelector('.package-tickets').value;
+    const p = r.querySelector('.package-price').value;
+    if (t && p) packages.push({ tickets: t, price: p });
+  });
+  return {
+    orgName:          dom('orgName')?.value || '',
+    raffleType:       dom('raffleType')?.value || '',
+    showDetails:      dom('toggleSwitch')?.classList.contains('active') || false,
+    logoFile:         dom('logoUpload')?.files[0] || null,
+    prizeFile:        prizeInput?.files[0] || null,
+    prizeInputActive: prizeInput ? !prizeInput.disabled : false,
+    licenceNumber:    dom('licenceNumber')?.value || '',
+    totalTickets:     dom('totalTickets')?.value || '',
+    prizeAmount:      dom('prizeAmount')?.value || '',
+    prizeDescription: dom('prizeDescription')?.value || '',
+    prizeValue:       dom('prizeValue')?.value || '',
+    drawDate:         dom('drawDate')?.value || '',
+    drawTime:         dom('drawTime')?.value || '',
+    drawLocation:     dom('drawLocation')?.value || '',
+    qrUrl:            (dom('qrUrl')?.value || '').trim(),
+    packages,
+    mode:             currentMode,
+    sport:            currentSport,
+    ratio:            currentRatio,
+    lang:             currentLang,
+    brand:            window.brandPalette || null,
+  };
+}
+
 // Cache ColorThief.getPalette results per (Image, N). Keyed by Image via
 // WeakMap so entries are collected when the Image is; each inner Map holds
 // the palette arrays for the palette sizes requested against that Image.
@@ -4394,18 +4441,19 @@ function drawLogoOnCard(ctx, img, x, y, w, h) {
 }
 
 function generateStandardPoster() {
-  const canvas=document.getElementById('preview');
+  const state = readFormState();
+  const canvas = dom('preview');
   const {W:cW, H:cH} = RATIOS[currentRatio] || RATIOS['16:9'];
   canvas.width=cW; canvas.height=cH;
   const ctx=canvas.getContext('2d');
-  const orgName=document.getElementById('orgName').value||'Your Organization';
-  const raffleType=document.getElementById('raffleType').value;
-  const showDetails=document.getElementById('toggleSwitch').classList.contains('active');
-  const file=document.getElementById('logoUpload').files[0];
+  const orgName = state.orgName || 'Your Organization';
+  const raffleType = state.raffleType;
+  const showDetails = state.showDetails;
+  const file = state.logoFile;
   if(!file){alert(UI_STRINGS[currentLang].alertNoLogoShort);return;}
 
-  const prizeFileEarly=(raffleType==='prize'||raffleType==='tirage')?document.getElementById('prizeImageUpload').files[0]:null;
-  const hasPrizeFileEarly=prizeFileEarly&&!document.getElementById('prizeImageUpload').disabled;
+  const prizeFileEarly = (raffleType==='prize'||raffleType==='tirage') ? state.prizeFile : null;
+  const hasPrizeFileEarly = prizeFileEarly && state.prizeInputActive;
 
   function doRender(preloadedPrizeImg) {
     const img=new Image();
@@ -4948,50 +4996,44 @@ function drawOrnDiv(ctx,cx,y,hw,color){
 // on their own lines. Used by both Standard and Sport detail renderers.
 // Returns array of {text, bold, type} objects representing visual lines.
 // ═══════════════════════════════════════════════════════════════════════
-function buildDetailDisplayLines(raffleType) {
+function buildDetailDisplayLines(state) {
+  const { raffleType } = state;
   const lines = [];
   const S = getRaffleStrings(raffleType);
 
   // ── Ticket Packages: stored individually — renderer decides layout ─────────
-  const pkgs = [];
-  document.querySelectorAll('.package-row').forEach(r => {
-    const t = r.querySelector('.package-tickets').value;
-    const p = r.querySelector('.package-price').value;
-    if (t && p) pkgs.push(`${t} ${t == 1 ? S.ticketSg : S.ticketPl} / $${Math.round(parseFloat(p))}`);
-  });
-  if (pkgs.length > 0) {
+  if (state.packages.length > 0) {
     lines.push({ text: S.pkgTitle, bold: true, type: 'title' });
     // Store each package individually — the renderer will try ALL-on-one-line
     // first, and fall back to ALL-one-per-line for consistency.
-    pkgs.forEach(p => lines.push({ text: p, bold: false, type: 'pkg' }));
+    state.packages.forEach(({ tickets, price }) => {
+      const label = `${tickets} ${tickets == 1 ? S.ticketSg : S.ticketPl} / $${Math.round(parseFloat(price))}`;
+      lines.push({ text: label, bold: false, type: 'pkg' });
+    });
   }
 
   // ── Total Tickets ───────────────────────────────────────────────────────
-  const tt = document.getElementById('totalTickets').value;
-  if (tt) lines.push({ text: S.totalTkts(tt), bold: false, type: 'info' });
+  if (state.totalTickets) lines.push({ text: S.totalTkts(state.totalTickets), bold: false, type: 'info' });
 
   // ── Prize information ───────────────────────────────────────────────────
   if (raffleType === '5050' || raffleType === 'tirage5050') {
-    const pa = document.getElementById('prizeAmount').value;
-    if (pa) {
-      const maxSales = parseFloat(pa.replace(/,/g, '')) || 0;
+    if (state.prizeAmount) {
+      const maxSales = parseFloat(state.prizeAmount.replace(/,/g, '')) || 0;
       const prizeAmt = Math.floor(maxSales / 2);
       const fmtMoney = n => '$' + (n >= 1000 ? n.toLocaleString('en-US') : n);
       lines.push({ text: S.prize5050(fmtMoney(prizeAmt)), bold: true, type: 'prize' });
       lines.push({ text: S.maxSales(fmtMoney(maxSales)), bold: false, type: 'prizeDetail' });
     }
   } else if (raffleType === 'prize' || raffleType === 'tirage') {
-    const pd = document.getElementById('prizeDescription').value;
-    const pv = document.getElementById('prizeValue')?.value || '';
-    if (pd) {
-      const pvFmt = pv ? `$${pv}` : '';
-      lines.push({ text: S.winnerGets(pd, pvFmt), bold: true, type: 'prize' });
+    if (state.prizeDescription) {
+      const pvFmt = state.prizeValue ? `$${state.prizeValue}` : '';
+      lines.push({ text: S.winnerGets(state.prizeDescription, pvFmt), bold: true, type: 'prize' });
     }
   }
 
   // ── Draw information — MUST stay on a single line ──────────────────────
-  const dd = document.getElementById('drawDate').value;
-  const dt = document.getElementById('drawTime').value;
+  const dd = state.drawDate;
+  const dt = state.drawTime;
   let dtxt = '';
   if (dd || dt) {
     dtxt = S.drawLabel + ' ';
@@ -5008,8 +5050,7 @@ function buildDetailDisplayLines(raffleType) {
   }
 
   // ── Location — MUST stay on a single line ──────────────────────────────
-  const dl = document.getElementById('drawLocation').value;
-  if (dl) lines.push({ text: dl, bold: false, type: 'location', nowrap: true });
+  if (state.drawLocation) lines.push({ text: state.drawLocation, bold: false, type: 'location', nowrap: true });
 
   return lines;
 }
@@ -5018,7 +5059,7 @@ function drawStdDetails(ctx,showDetails,rx,tw,margin,th,rtx,curY,raffleType,text
   if(!showDetails){finaliseDownload();return;}
 
   // ── Build structured display lines ─────────────────────────────────────────
-  const displayLines = buildDetailDisplayLines(raffleType);
+  const displayLines = buildDetailDisplayLines(readFormState());
   if (displayLines.length === 0) { finaliseDownload(); return; }
 
   // ── Reserve space for QR code at bottom ────────────────────────────────────
@@ -5141,14 +5182,15 @@ function drawStdDetails(ctx,showDetails,rx,tw,margin,th,rtx,curY,raffleType,text
 
 // ─── SPORT POSTER ─────────────────────────────────────────────────────────────
 function generateSportPoster() {
-  const canvas=document.getElementById('preview');
+  const state = readFormState();
+  const canvas = dom('preview');
   const {W:cW, H:cH} = RATIOS[currentRatio] || RATIOS['16:9'];
   canvas.width=cW; canvas.height=cH;
   const ctx=canvas.getContext('2d');
-  const orgName=document.getElementById('orgName').value||'Your Team';
-  const raffleType=document.getElementById('raffleType').value;
-  const showDetails=document.getElementById('toggleSwitch').classList.contains('active');
-  const file=document.getElementById('logoUpload').files[0];
+  const orgName = state.orgName || 'Your Team';
+  const raffleType = state.raffleType;
+  const showDetails = state.showDetails;
+  const file = state.logoFile;
   if(!file){alert(UI_STRINGS[currentLang].alertNoLogoShort);return;}
 
   const sport=SPORTS[currentSport];
@@ -6040,7 +6082,7 @@ function drawSportDetails(ctx,showDetails,rx,tw,ry,th,rcx,startY,raffleType,spor
   const avail = bot - top;
 
   // ── Build structured display lines (same as standard) ──────────────────────
-  const displayLines = buildDetailDisplayLines(raffleType);
+  const displayLines = buildDetailDisplayLines(readFormState());
   if (displayLines.length === 0) return;
 
   // ── Text colour — shape interior is white, need dark text ──────────────────
@@ -6411,9 +6453,10 @@ function renderInstructionsDoc(lang) {
 
 
 async function finaliseDownload(){
-  const src = document.getElementById('preview');
+  const state = readFormState();
+  const src = dom('preview');
   const ctx = src.getContext('2d');
-  const qrUrl = (document.getElementById('qrUrl')?.value || '').trim();
+  const qrUrl = state.qrUrl;
 
   // Draw QR code(s) — letter gets two corner QRs in the bottom ticket;
   // all other formats get one QR in the bottom-right corner as before.
@@ -6462,26 +6505,25 @@ async function finaliseDownload(){
   // SC logo removed per client request — banners are clean / unbranded
 
   // Use the preview canvas directly (no duplicate watermark canvas)
-  const dl = document.getElementById('downloadLink');
+  const dl = dom('downloadLink');
   dl.href = src.toDataURL('image/png');
   const ratioStr = currentRatio === 'letter'  ? 'letter-8x11-300dpi'
                  : currentRatio === 'custom'  ? `${RATIOS.custom?.W||0}x${RATIOS.custom?.H||0}`
                  : currentRatio.replace(':','-').replace('.','p');
-  const orgSlug = (document.getElementById('orgName')?.value || 'raffle')
+  const orgSlug = (state.orgName || 'raffle')
     .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,28) || 'raffle';
   const sportSlug = currentMode === 'sport' ? `-${currentSport}` : '';
   dl.download = `${orgSlug}${sportSlug}-${ratioStr}.png`;
 
   // Show preview canvas
   src.classList.add('visible');
-  document.getElementById('previewPlaceholder').style.display = 'none';
+  dom('previewPlaceholder').style.display = 'none';
 
   // Show download section
-  const dlSection = document.getElementById('downloadSection');
-  dlSection.classList.add('visible');
+  dom('downloadSection').classList.add('visible');
 
   // Update dimensions display
-  const dims = document.getElementById('previewDims');
+  const dims = dom('previewDims');
   if (dims) dims.textContent = `${src.width} × ${src.height}`;
 
   // Show file size
