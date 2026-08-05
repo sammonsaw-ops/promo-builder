@@ -1512,77 +1512,79 @@ function updateQrPreview(url) {
 // Draws a QR code at (x,y) with the given pixel size, including a white
 // background pill and "Scan to buy tickets" label below.
 function drawQROnCanvas(ctx, x, y, size, url) {
-  return new Promise((resolve) => {
-    if (!url || !url.trim()) { resolve(); return; }
-    const pad = Math.round(size * 0.15);
-    const labelFS = Math.max(8, Math.round(size * 0.13));
-    const labelText = getRaffleStrings(document.getElementById('raffleType')?.value || '5050').scanQR;
+  if (!url || !url.trim()) return Promise.resolve();
 
-    // Measure label to ensure pill is wide enough
-    ctx.save();
-    ctx.font = `600 ${labelFS}px 'Plus Jakarta Sans',sans-serif`;
-    const labelW = ctx.measureText(labelText).width + 12;
-    const qrPillW = size + pad * 2;
-    const pillW = Math.max(qrPillW, labelW);
-    const pillH = size + pad * 2 + labelFS + 8;
-    const pillX = x - pad - (pillW - qrPillW) / 2;
-    const pillCx = pillX + pillW / 2;
+  const pad = Math.round(size * 0.15);
+  const labelFS = Math.max(8, Math.round(size * 0.13));
+  const labelText = getRaffleStrings(document.getElementById('raffleType')?.value || '5050').scanQR;
 
-    // White background pill
-    ctx.fillStyle = 'rgba(255,255,255,0.96)';
-    roundRect(ctx, pillX, y - pad, pillW, pillH, 6);
-    ctx.fill();
-    // Label
-    ctx.font = `600 ${labelFS}px 'Plus Jakarta Sans',sans-serif`;
-    ctx.fillStyle = '#374151';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText(labelText, pillCx, y + size + pad + labelFS);
-    ctx.restore();
+  // Measure label to ensure pill is wide enough
+  ctx.save();
+  ctx.font = `600 ${labelFS}px 'Plus Jakarta Sans',sans-serif`;
+  const labelW = ctx.measureText(labelText).width + 12;
+  const qrPillW = size + pad * 2;
+  const pillW = Math.max(qrPillW, labelW);
+  const pillH = size + pad * 2 + labelFS + 8;
+  const pillX = x - pad - (pillW - qrPillW) / 2;
+  const pillCx = pillX + pillW / 2;
 
-    // Generate QR code into a hidden div, then draw onto canvas
-    const tempDiv = document.createElement('div');
-    tempDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
-    document.body.appendChild(tempDiv);
+  // White background pill
+  ctx.fillStyle = 'rgba(255,255,255,0.96)';
+  roundRect(ctx, pillX, y - pad, pillW, pillH, 6);
+  ctx.fill();
+  // Label
+  ctx.font = `600 ${labelFS}px 'Plus Jakarta Sans',sans-serif`;
+  ctx.fillStyle = '#374151';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(labelText, pillCx, y + size + pad + labelFS);
+  ctx.restore();
+
+  // Poll one animation frame at a time until QRCode.js emits a <canvas> or
+  // a fully-loaded <img>. Rejects after 3s so slow-render failures surface
+  // instead of silently shipping a QR-less download.
+  return new Promise((resolve, reject) => {
+    const host = document.createElement('div');
+    host.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+    document.body.appendChild(host);
+    const cleanup = () => { try { host.remove(); } catch (_) {} };
+
     try {
-      new QRCode(tempDiv, {
+      new QRCode(host, {
         text: url.trim(),
         width: size * 2, height: size * 2,
         colorDark: '#000000', colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
+        correctLevel: QRCode.CorrectLevel.M,
       });
-      // QRCode.js renders asynchronously — give it a tick then grab the output
-      setTimeout(() => {
-        try {
-          const qrEl = tempDiv.querySelector('canvas') || tempDiv.querySelector('img');
-          if (qrEl) {
-            if (qrEl.tagName === 'CANVAS') {
-              ctx.drawImage(qrEl, x, y, size, size);
-              document.body.removeChild(tempDiv);
-              resolve();
-            } else {
-              // img element — wait for it to load if not already
-              const finish = () => {
-                ctx.drawImage(qrEl, x, y, size, size);
-                document.body.removeChild(tempDiv);
-                resolve();
-              };
-              if (qrEl.complete && qrEl.naturalWidth) { finish(); }
-              else { qrEl.onload = finish; qrEl.onerror = () => { document.body.removeChild(tempDiv); resolve(); }; }
-            }
-          } else {
-            document.body.removeChild(tempDiv);
-            resolve();
-          }
-        } catch(e2) {
-          try { document.body.removeChild(tempDiv); } catch(_) {}
-          resolve();
-        }
-      }, 120);
-    } catch(e) {
-      try { document.body.removeChild(tempDiv); } catch(_) {}
-      resolve();
+    } catch (err) {
+      cleanup();
+      return reject(err);
     }
+
+    const startedAt = performance.now();
+    const TIMEOUT_MS = 3000;
+    const tick = () => {
+      const el = host.querySelector('canvas, img');
+      const ready = el && (el.tagName === 'CANVAS' || (el.complete && el.naturalWidth > 0));
+      if (ready) {
+        try {
+          ctx.drawImage(el, x, y, size, size);
+          cleanup();
+          resolve();
+        } catch (err) {
+          cleanup();
+          reject(err);
+        }
+        return;
+      }
+      if (performance.now() - startedAt > TIMEOUT_MS) {
+        cleanup();
+        reject(new Error('QR render timeout'));
+        return;
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
   });
 }
 
@@ -6490,39 +6492,45 @@ async function finaliseDownload(){
 
   // Draw QR code(s) — letter gets two corner QRs in the bottom ticket;
   // all other formats get one QR in the bottom-right corner as before.
+  // Wrapped so a QR render failure (timeout, invalid URL) logs to console
+  // but still lets the download complete without the QR overlay.
   if (qrUrl && _ticketLayout) {
-    const {rx, ry, tw, th} = _ticketLayout;
-    if (currentRatio === 'letter') {
-      // Two QRs in the lower corners of the bottom (raffle) ticket.
-      // Size is chosen so the QR top sits safely below the prize image bottom
-      // and the pill stays fully within the ticket shape.
-      const qrSize  = Math.round(Math.min(tw, th) * 0.175); // ~228 px at letter scale
-      const pad     = Math.round(qrSize * 0.15);
-      const labelFS = Math.max(8, Math.round(qrSize * 0.13));
-      const inset   = 16; // gap from ticket edge for both axes
+    try {
+      const {rx, ry, tw, th} = _ticketLayout;
+      if (currentRatio === 'letter') {
+        // Two QRs in the lower corners of the bottom (raffle) ticket.
+        // Size is chosen so the QR top sits safely below the prize image bottom
+        // and the pill stays fully within the ticket shape.
+        const qrSize  = Math.round(Math.min(tw, th) * 0.175); // ~228 px at letter scale
+        const pad     = Math.round(qrSize * 0.15);
+        const labelFS = Math.max(8, Math.round(qrSize * 0.13));
+        const inset   = 16; // gap from ticket edge for both axes
 
-      // Anchor pill bottom to ticket bottom minus inset and sport band
-      const _letterBandOff = _ticketLayout.bandH || 0;
-      const qrY = ry + th - inset - qrSize - pad - labelFS - 6 - _letterBandOff;
+        // Anchor pill bottom to ticket bottom minus inset and sport band
+        const _letterBandOff = _ticketLayout.bandH || 0;
+        const qrY = ry + th - inset - qrSize - pad - labelFS - 6 - _letterBandOff;
 
-      // Lower-right corner of the bottom ticket
-      const rqrX = rx + tw - inset - qrSize - pad;
-      await drawQROnCanvas(ctx, rqrX, qrY, qrSize, qrUrl);
+        // Lower-right corner of the bottom ticket
+        const rqrX = rx + tw - inset - qrSize - pad;
+        await drawQROnCanvas(ctx, rqrX, qrY, qrSize, qrUrl);
 
-      // Lower-left corner of the bottom ticket
-      const lqrX = rx + inset + pad;
-      await drawQROnCanvas(ctx, lqrX, qrY, qrSize, qrUrl);
+        // Lower-left corner of the bottom ticket
+        const lqrX = rx + inset + pad;
+        await drawQROnCanvas(ctx, lqrX, qrY, qrSize, qrUrl);
 
-    } else {
-      const qrSize = Math.round(Math.min(tw, th) * 0.14);
-      const pad    = Math.round(qrSize * 0.15);
-      const labelFS = Math.max(8, Math.round(qrSize * 0.13));
-      const pillH  = qrSize + pad * 2 + labelFS + 8;
-      // Offset QR above sport banner text band (bandH=0 for standard)
-      const _bandOff = _ticketLayout.bandH || 0;
-      const qrX = rx + tw - qrSize - pad - 10;
-      const qrY = ry + th - pillH - 10 - _bandOff;
-      await drawQROnCanvas(ctx, qrX, qrY, qrSize, qrUrl);
+      } else {
+        const qrSize = Math.round(Math.min(tw, th) * 0.14);
+        const pad    = Math.round(qrSize * 0.15);
+        const labelFS = Math.max(8, Math.round(qrSize * 0.13));
+        const pillH  = qrSize + pad * 2 + labelFS + 8;
+        // Offset QR above sport banner text band (bandH=0 for standard)
+        const _bandOff = _ticketLayout.bandH || 0;
+        const qrX = rx + tw - qrSize - pad - 10;
+        const qrY = ry + th - pillH - 10 - _bandOff;
+        await drawQROnCanvas(ctx, qrX, qrY, qrSize, qrUrl);
+      }
+    } catch (err) {
+      console.warn('QR render failed, continuing without QR overlay:', err);
     }
   }
 
