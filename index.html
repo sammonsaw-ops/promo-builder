@@ -56,7 +56,7 @@
           <div class="step-body">
             <div class="form-group">
               <label class="field-label" id="labelRaffleType">Raffle Type</label>
-              <select id="raffleType" onchange="togglePrizeImage()">
+              <select id="raffleType" data-autopreview onchange="togglePrizeImage()">
                 <option value="5050">50/50 Raffle</option>
                 <option value="prize">Prize Raffle</option>
                 <option value="tirage5050">Tirage moitié-moitié</option>
@@ -201,7 +201,7 @@
             <div class="form-grid">
               <div class="form-group span2">
                 <label class="field-label" id="labelOrgName">Organization Name</label>
-                <input type="text" id="orgName" placeholder="e.g. Northside Hockey">
+                <input type="text" id="orgName" data-autopreview placeholder="e.g. Northside Hockey">
               </div>
               <div class="form-group span2">
                 <label class="field-label" id="labelLogoUpload">Team / Club Logo</label>
@@ -281,7 +281,7 @@
             <div class="form-group span2" style="margin-top:4px">
               <label class="field-label"><span id="labelQrUrl">Ticket Purchase URL</span> <span class="hint" id="labelQrUrlHint">(adds QR code to banner)</span></label>
               <div style="display:flex;gap:8px;align-items:center;">
-                <input type="url" id="qrUrl" placeholder="https://your-raffle-platform.com/buy" oninput="updateQrPreview(this.value)" style="flex:1;">
+                <input type="url" id="qrUrl" data-autopreview placeholder="https://your-raffle-platform.com/buy" oninput="updateQrPreview(this.value)" style="flex:1;">
                 <button type="button" id="qrRemoveBtn" onclick="removeQrUrl()" style="display:none;padding:4px 10px;font-size:11px;background:#fff0f0;border:1px solid #e57373;border-radius:6px;color:#c62828;cursor:pointer;white-space:nowrap;">✕ Remove</button>
               </div>
               <div class="qr-preview-wrap" id="qrPreviewWrap" style="display:none">
@@ -333,35 +333,35 @@
                   <label class="field-label" id="labelMaxSales">Maximum Possible Sales</label>
                   <div class="input-prefix-wrap">
                     <span class="input-prefix">$</span>
-                    <input type="text" id="prizeAmount" placeholder="625,000" oninput="formatCommaNumber(this)" inputmode="numeric">
+                    <input type="text" id="prizeAmount" data-autopreview placeholder="625,000" oninput="formatCommaNumber(this)" inputmode="numeric">
                   </div>
                 </div>
                 <div class="form-group span2" id="prizeDescriptionSection" style="display:none">
                   <label class="field-label" id="labelPrizeDesc">Prize Description</label>
-                  <input type="text" id="prizeDescription" placeholder="e.g. 2025 Ford F-150 Truck" oninput="scheduleAutoPreview()">
+                  <input type="text" id="prizeDescription" data-autopreview placeholder="e.g. 2025 Ford F-150 Truck">
                 </div>
                 <div class="form-group span2" id="prizeValueSection" style="display:none">
                   <label class="field-label" id="labelPrizeValue">Prize Value</label>
                   <div class="input-prefix-wrap">
                     <span class="input-prefix">$</span>
-                    <input type="text" id="prizeValue" placeholder="45,000" oninput="formatCommaNumber(this);scheduleAutoPreview();" inputmode="numeric">
+                    <input type="text" id="prizeValue" data-autopreview placeholder="45,000" oninput="formatCommaNumber(this)" inputmode="numeric">
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="field-label" id="labelLicence">Licence Number</label>
-                  <input type="text" id="licenceNumber" placeholder="e.g. #:Pending">
+                  <input type="text" id="licenceNumber" data-autopreview placeholder="e.g. #:Pending">
                 </div>
                 <div class="form-group">
                   <label class="field-label" id="labelDrawDate">Draw Date</label>
-                  <input type="date" id="drawDate">
+                  <input type="date" id="drawDate" data-autopreview>
                 </div>
                 <div class="form-group">
                   <label class="field-label" id="labelDrawTime">Draw Time</label>
-                  <input type="time" id="drawTime" value="00:00">
+                  <input type="time" id="drawTime" data-autopreview value="00:00">
                 </div>
                 <div class="form-group span2">
                   <label class="field-label"><span id="labelDrawLocation">Draw Location</span> <span class="hint" id="labelDrawLocationHint">(full address)</span></label>
-                  <input type="text" id="drawLocation" placeholder="123 Main St, City, Province A1B 2C3">
+                  <input type="text" id="drawLocation" data-autopreview placeholder="123 Main St, City, Province A1B 2C3">
                 </div>
               </div>
             </div>
@@ -440,18 +440,18 @@ function scheduleAutoPreview() {
     try { generatePoster(); } catch(e) { console.warn('Auto-preview skipped:', e.message); }
   }, 900);
 }
-// Wire all text-type inputs
+// Wire auto-preview via [data-autopreview] attribute — add the attribute to
+// any input/select in the markup to opt it into the debounced re-render.
+// File uploads and the logo still get bespoke wiring below.
 (function wireAutoPreview(){
-  ['orgName','raffleType','drawDate','drawTime','ticketPrice','grandPrize','licenceNumber',
-   'prizeAmount','drawLocation','qrUrl','prizeDescription','prizeValue'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('input', scheduleAutoPreview);
+  document.querySelectorAll('[data-autopreview]').forEach(el => {
+    el.addEventListener('input', scheduleAutoPreview);
   });
-  // Checkboxes
+  // Checkboxes: fire on change so state settles before we re-render
   document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', scheduleAutoPreview);
   });
-  // Prize image
+  // Prize image: debounced preview on file selection
   const pi = document.getElementById('prizeImageUpload');
   if (pi) pi.addEventListener('change', scheduleAutoPreview);
   // Logo: fire immediately on upload (not debounced)
