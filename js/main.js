@@ -2805,8 +2805,15 @@ function fillSoccerBall(ctx, x, y, w, h) {
   // Halfway line
   ctx.beginPath(); ctx.moveTo(x,y+h/2); ctx.lineTo(x+w,y+h/2); ctx.stroke();
   ctx.restore();
-  // Ball pattern directly on the field (no white circle base — the shape fill handles that)
-  drawSoccerBallBW(ctx, x+w/2, y+h/2, Math.min(w,h)*0.38);
+  // Ball pattern directly on the field (no white circle base — the shape fill handles that).
+  // Anchor the ball to the shape's centre (when available) so its outer pentagon
+  // patches don't leak past the pentagon shape's vertices. Radius is also
+  // reduced slightly so patches sit safely inside the pentagon's inscribed
+  // circle across every aspect ratio.
+  const _fo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
+  const _ballCy = _fo?.shapeCy ?? (y + h / 2);
+  const _ballR  = Math.min(w, h) * 0.30;
+  drawSoccerBallBW(ctx, x + w / 2, _ballCy, _ballR);
   const sheen=ctx.createRadialGradient(x+w*0.32,y+h*0.26,4,x+w/2,y+h/2,Math.min(w,h)*0.42);
   sheen.addColorStop(0,'rgba(255,255,255,0.45)'); sheen.addColorStop(1,'rgba(255,255,255,0)');
   ctx.fillStyle=sheen; ctx.fillRect(x,y,w,h);
@@ -2985,8 +2992,13 @@ function fillWaterPolo(ctx, x, y, w, h) {
     ctx.stroke();
   }
   ctx.restore();
-  // Ball — white with blue hexagons
-  const br=Math.min(w,h)*0.23, bcx=x+w/2, bcy=y+h*0.42;
+  // Ball + splash rings — anchor to the shape's actual centre so the
+  // concentric splash arcs stay aligned with the white shape when the shape
+  // is band-centred (previously the rings drifted when cy != y+h*0.42).
+  const _wpFo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
+  const bcx = x + w / 2;
+  const bcy = _wpFo?.shapeCy ?? (y + h * 0.42);
+  const br  = Math.min(w, h) * 0.23;
   ctx.fillStyle='#ffffff';
   ctx.beginPath(); ctx.arc(bcx,bcy,br,0,Math.PI*2); ctx.fill();
   ctx.strokeStyle='rgba(21,101,192,0.70)'; ctx.lineWidth=1.5;
@@ -3822,9 +3834,20 @@ function fillFencing(ctx, x, y, w, h) {
   ctx.save(); ctx.globalAlpha=0.07; ctx.strokeStyle='#90a0c0'; ctx.lineWidth=0.8;
   for(let i=0;i<12;i++){ctx.beginPath();ctx.moveTo(x,y+i*(h/12));ctx.lineTo(x+w,y+i*(h/12));ctx.stroke();}
   ctx.restore();
-  // Fencing sword / épée (foil shape)
-  const scx=x+w*0.5, scy=y+h*0.5;
-  const slen=Math.min(w,h)*0.60;
+  // Fencing sword / épée (foil shape). Anchor to shape centre and constrain
+  // total length to the shape's diameter (minus a safety margin) so the blade
+  // tip and pommel can't poke out from behind the white shape at any ratio.
+  const _fcFo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
+  const scx = x + w * 0.5;
+  const scy = _fcFo?.shapeCy ?? (y + h * 0.5);
+  // Prefer the shape's max radius when available; fall back to a proportional
+  // length. 1.72 × shape-radius ≈ 86% of the shape's inscribed square width,
+  // guaranteeing both ends stay inside the shape at any aspect ratio.
+  const shapeR = _fcFo?.shapeR;
+  const slen = Math.min(
+    shapeR ? shapeR * 1.72 : Math.min(w, h) * 0.60,
+    Math.min(w, h) * 0.60,
+  );
   ctx.save(); ctx.lineCap='round';
   // Blade
   ctx.strokeStyle='rgba(200,215,240,0.80)'; ctx.lineWidth=Math.max(2,slen*0.025);
@@ -4309,6 +4332,12 @@ function generateStandardPoster() {
   const {W:cW, H:cH} = RATIOS[currentRatio] || RATIOS['16:9'];
   canvas.width=cW; canvas.height=cH;
   const ctx=canvas.getContext('2d');
+  // Use the browser's highest-quality resampler for every drawImage call in
+  // this render — this is what visibly rescues low-native-resolution PNGs
+  // (common with AI-generated prize images) from the default bilinear
+  // pixelation. Full-resolution photos and PNGs are unaffected.
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   const orgName = state.orgName || 'Your Organization';
   const raffleType = state.raffleType;
   const showDetails = state.showDetails;
@@ -5063,6 +5092,10 @@ function generateSportPoster() {
   const {W:cW, H:cH} = RATIOS[currentRatio] || RATIOS['16:9'];
   canvas.width=cW; canvas.height=cH;
   const ctx=canvas.getContext('2d');
+  // Use the browser's highest-quality resampler for every drawImage call in
+  // this render — see generateStandardPoster for rationale.
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   const orgName = state.orgName || 'Your Team';
   const raffleType = state.raffleType;
   const showDetails = state.showDetails;
@@ -5152,9 +5185,12 @@ function generateSportPoster() {
       ctx.save(); ctx.strokeStyle='rgba(160,145,120,0.4)'; ctx.lineWidth=1;
       scalloppedRect(ctx,tx,ty,tw,th,cr,side); ctx.stroke(); ctx.restore();
     }
-    // Set fill opts for sport-specific tile rendering (e.g. football lace suppression)
-    window._sportFillOpts = { isPortrait, ratio: currentRatio };
+    // Set fill opts for sport-specific tile rendering (e.g. football lace
+    // suppression, and per-ticket shape-centre alignment for concentric
+    // decorations like the waterpolo splash rings or the soccer ball).
+    window._sportFillOpts = { isPortrait, ratio: currentRatio, shapeCy: lCy, shapeR: lMaxR, side: 'left' };
     drawTicket(lx,ly,lSide,sport.fillLeft);
+    window._sportFillOpts = { isPortrait, ratio: currentRatio, shapeCy: rCy, shapeR: rMaxR, side: 'right' };
     drawTicket(rx,ry,rSide,sport.fillRight);
     window._sportFillOpts = null;
     drawTearLine(ctx, lx, ly, tw, th, gap, isPortrait);
@@ -5172,24 +5208,39 @@ function generateSportPoster() {
     const BAND_H = Math.round(Math.max(54, Math.min(th * 0.135, 84)));
     _ticketLayout.bandH = BAND_H;
 
-    function computeCentredCy(tx, ty, tw2, th2) {
-      // Reserve top BAND_H for text band, bottom bandH for icon band.
-      // Centre the sport shape in the remaining interior zone.
-      const topReserve = BAND_H + 8;   // text band height + small gap
-      // 4:5 ratio: extra bottom clearance so shape doesn't visually graze the icon band
-      const extra45 = currentRatio === '4:5' ? 28 : 0;
-      const botReserve = bandH + 8 + extra45;
+    // Centre the sport shape in the ACTUAL visible colored zone between the
+    // bands, per ticket side. The two bands are not symmetric:
+    //   - text band (drawTextBand) has height BAND_H, on the OUTER edge of
+    //     the ticket (top for 'top'/'left'/'right' sides, bottom for 'bottom')
+    //   - icon band (drawSportBand) has height bandH, at the BOTTOM of every
+    //     ticket in landscape, and at the BOTTOM of the TOP ticket only in
+    //     portrait (the portrait bottom ticket gets no icon band).
+    //
+    // Previous behaviour used symmetric reserves and drove the shape toward
+    // the outer band on both tickets in tall ratios (4:5, 1:1). This version
+    // reads the side and whether the icon band will actually be drawn.
+    function computeCentredCy(tx, ty, tw2, th2, side) {
+      const hasTextBandTop    = side !== 'bottom';                   // outer=top
+      const hasTextBandBottom = side === 'bottom';                   // outer=bottom
+      const hasIconBand       = !isPortrait || side === 'top';        // portrait bottom skips it
+      // 6px visual breathing gap between band edge and shape bounding box.
+      const gapPx = 6;
+      const topReserve = (hasTextBandTop    ? BAND_H : 0) + gapPx;
+      const botTextRes = hasTextBandBottom ? BAND_H : 0;
+      const botIconRes = hasIconBand        ? bandH  : 0;
+      const botReserve = Math.max(botTextRes, botIconRes) + gapPx;
       const innerTop = ty + topReserve;
       const innerBot = ty + th2 - botReserve;
-      const innerH = innerBot - innerTop;
-      // Shape radius can be at most 45% of inner height — keeps it clear of both bands
-      const maxR = innerH * 0.45;
-      // Centre of shape is middle of inner zone
+      const innerH   = innerBot - innerTop;
+      // Shape radius at most 46% of inner height — leaves a small halo on each
+      // side. The old 45% + asymmetric reserves is replaced by symmetric 46%
+      // + proper reserves, so the shape reads as balanced.
+      const maxR = innerH * 0.46;
       return { cy: innerTop + innerH / 2, maxR };
     }
 
-    const _lCyInfo = computeCentredCy(lx, ly, tw, th);
-    const _rCyInfo = computeCentredCy(rx, ry, tw, th);
+    const _lCyInfo = computeCentredCy(lx, ly, tw, th, lSide);
+    const _rCyInfo = computeCentredCy(rx, ry, tw, th, rSide);
     const lCy = _lCyInfo.cy, lMaxR = _lCyInfo.maxR;
     const rCy = _rCyInfo.cy, rMaxR = _rCyInfo.maxR;
 
