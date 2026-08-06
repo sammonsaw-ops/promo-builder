@@ -1,8 +1,8 @@
 // ── AUTO-PREVIEW: regenerate when any input changes (debounced 900ms) ────────
+// Fires whether or not a logo has been uploaded — generatePoster decides
+// between the full render and the low-fidelity placeholder based on that.
 let _autoPreviewTimer = null;
 function scheduleAutoPreview() {
-  const file = document.getElementById('logoUpload').files[0];
-  if (!file) return;
   clearTimeout(_autoPreviewTimer);
   _autoPreviewTimer = setTimeout(() => {
     try { generatePoster(); } catch(e) { console.warn('Auto-preview skipped:', e.message); }
@@ -599,7 +599,13 @@ function setStatus(type, text) {
 function generatePoster() {
   const S = UI_STRINGS[currentLang];
   const file = document.getElementById('logoUpload').files[0];
-  if (!file) { alert(S.alertNoLogo); return; }
+  if (!file) {
+    // No logo yet — render a low-fidelity placeholder so the user gets
+    // immediate visual feedback as they fill in the org name. The download
+    // section stays hidden until a real logo is uploaded.
+    renderPlaceholderPreview();
+    return;
+  }
   setStatus('', S.statusGenerating);
   const btn = document.querySelector('.btn-generate');
   if (btn) { btn.disabled = true; btn.innerHTML = `⏳ ${S.statusGenerating}`; }
@@ -613,6 +619,70 @@ function generatePoster() {
     }
     if (btn) { btn.disabled = false; btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg> ${S.generateBtn}`; }
   }, 50);
+}
+
+// Low-fidelity preview shown before a logo is uploaded. Renders just the
+// current organization name over a neutral gradient with a hint telling
+// the user to upload a logo. The download section stays hidden — the
+// placeholder isn't meant to be exported.
+function renderPlaceholderPreview() {
+  const state = readFormState();
+  const canvas = dom('preview');
+  const { W, H } = RATIOS[currentRatio] || RATIOS['16:9'];
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Neutral brand-blue diagonal gradient
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, '#2563eb');
+  grad.addColorStop(1, '#1d4ed8');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+  // Radial vignette to match the standard renderer's look
+  const vig = ctx.createRadialGradient(W/2, H/2, H*0.2, W/2, H/2, H*0.9);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.35)');
+  ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
+
+  // Org name — big, centered, wraps if needed
+  const orgName = state.orgName || (currentLang === 'fr' ? 'Votre organisme' : 'Your Organization');
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const nameSize = Math.round(H * 0.10);
+  ctx.font = `800 ${nameSize}px 'Plus Jakarta Sans', system-ui, sans-serif`;
+  // Simple word-wrap so long names don't overflow
+  const maxW = W * 0.86;
+  const words = orgName.split(/\s+/);
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    const test = line ? `${line} ${w}` : w;
+    if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  const lineH = Math.round(nameSize * 1.15);
+  const startY = H * 0.42 - ((lines.length - 1) * lineH) / 2;
+  lines.forEach((ln, i) => ctx.fillText(ln, W/2, startY + i * lineH));
+
+  // Hint text below
+  const hint = currentLang === 'fr'
+    ? 'Téléversez un logo pour voir l’aperçu complet'
+    : 'Upload a logo to see the full preview';
+  ctx.font = `500 ${Math.round(H * 0.028)}px 'Plus Jakarta Sans', system-ui, sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  ctx.fillText(hint, W/2, H * 0.42 + ((lines.length - 1) * lineH) / 2 + lineH * 0.9);
+
+  // Reveal preview canvas, hide placeholder card
+  canvas.classList.add('visible');
+  const ph = dom('previewPlaceholder');
+  if (ph) ph.style.display = 'none';
+
+  // Placeholder isn't downloadable — keep the download section hidden
+  const dl = dom('downloadSection');
+  if (dl) dl.classList.remove('visible');
 }
 
 
