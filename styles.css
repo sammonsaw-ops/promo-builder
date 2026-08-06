@@ -229,6 +229,7 @@ input[type=file]:disabled + .file-upload-label { opacity:0.45; cursor:not-allowe
   color:white; font-family:var(--font); font-size:0.82rem; font-weight:800;
   letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; text-decoration:none;
   box-shadow:0 4px 14px rgba(22,163,74,.30); transition:all .2s;
+  white-space:nowrap;
 }
 .btn-download:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(22,163,74,.40); }
 

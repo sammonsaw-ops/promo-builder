@@ -110,7 +110,11 @@ const INSTRUCTIONS_STRINGS = {
     tipCheckerGoodLabel: '&#9989; GOOD — Real transparency (PNG)',
     tipCheckerP2: `<strong>How to fix it:</strong> Open the original file in an image editor, ensure the background is truly transparent (you should see the checkerboard in the editor but it should <em>not</em> be part of the saved file), then export as a <strong>PNG with transparency</strong> enabled. Re-upload the corrected file.`,
     dlH3: 'Generating &amp; Downloading Your Banner',
-    dlP: `Once you are satisfied with the preview, click the blue <strong>Generate Banner</strong> button at the bottom of the left panel. The banner will render in full resolution in the right panel. Click <strong>Download PNG</strong> to save the image to your device. The file is named automatically using your organization name, sport (if selected), and aspect ratio.`,
+    dlP: `Once you are satisfied with the preview, click the blue <strong>Generate Banner</strong> button at the bottom of the left panel. The banner will render in full resolution in the right panel. Click <strong>Download PNG</strong> to save the image to your device. The file is named automatically using your organization name, sport (if selected), and aspect ratio. Your downloaded PNG is also <strong>re-uploadable</strong> — see <em>Editing a Banner Later</em> below.`,
+    reuseH4: 'Editing a Banner Later — Re-upload Your PNG',
+    reuseP: `Every banner you download from this tool includes an invisible copy of the form data used to build it — every field, your uploaded logo, and your prize image (if any). If you need to change something later (for example, swapping <em>#:Pending</em> for your approved licence number, fixing a typo, or updating the draw date), you don't need to re-enter anything.
+      <br><br>At the top of the left panel, use <strong>Continuing an earlier banner? — Upload PNG</strong> and select the PNG you originally downloaded. Every field, image, colour, and toggle is restored exactly as it was. Make your edits and re-generate.
+      <br><br><strong>Important:</strong> the embedded data only survives if the PNG file is passed around as-is (email, cloud storage, file transfer). If someone opens the file in Photoshop, Preview, Paint, or a social media platform and re-saves or re-exports it, the data is stripped. Always keep the <em>original</em> download available if you might need to edit later.`,
     disclaimer: `<strong>Disclaimer:</strong> This is a free tool provided by Sammons Creative at no charge. The end user is solely responsible for reviewing all banner content for accuracy, errors, spelling, dates, and legal compliance (including raffle licence requirements) before printing or publishing. Sammons Creative assumes no liability for mistakes or omissions in the generated output. No information or images entered into this tool are stored, saved, or transmitted to any server.`,
   },
   fr: {
@@ -164,7 +168,11 @@ const INSTRUCTIONS_STRINGS = {
     tipCheckerGoodLabel: '&#9989; BON — Transparence réelle (PNG)',
     tipCheckerP2: `<strong>Comment corriger :</strong> Ouvrez le fichier original dans un éditeur d'images, assurez-vous que le fond est véritablement transparent (vous devriez voir le damier dans l'éditeur mais il ne devrait <em>pas</em> faire partie du fichier enregistré), puis exportez en tant que <strong>PNG avec transparence</strong> activée. Retéléversez le fichier corrigé.`,
     dlH3: 'Générer et télécharger votre bannière',
-    dlP: `Lorsque vous êtes satisfait de l'aperçu, cliquez sur le bouton bleu <strong>Générer la bannière</strong> en bas du panneau de gauche. La bannière s'affichera en pleine résolution dans le panneau de droite. Cliquez sur <strong>Télécharger PNG</strong> pour enregistrer l'image sur votre appareil. Le fichier est nommé automatiquement selon le nom de votre organisme, le sport (si sélectionné) et le format d'image.`,
+    dlP: `Lorsque vous êtes satisfait de l'aperçu, cliquez sur le bouton bleu <strong>Générer la bannière</strong> en bas du panneau de gauche. La bannière s'affichera en pleine résolution dans le panneau de droite. Cliquez sur <strong>Télécharger PNG</strong> pour enregistrer l'image sur votre appareil. Le fichier est nommé automatiquement selon le nom de votre organisme, le sport (si sélectionné) et le format d'image. Le PNG téléchargé est également <strong>réimportable</strong> — voir <em>Modifier une bannière plus tard</em> ci-dessous.`,
+    reuseH4: 'Modifier une bannière plus tard — Réimporter votre PNG',
+    reuseP: `Chaque bannière téléchargée depuis cet outil contient une copie invisible des données du formulaire ayant servi à la créer — chaque champ, votre logo téléversé, et l'image du prix (le cas échéant). Si vous devez modifier un détail plus tard (par exemple, remplacer <em>#:En attente</em> par votre numéro de licence approuvé, corriger une faute de frappe ou mettre à jour la date du tirage), il n'est pas nécessaire de tout ressaisir.
+      <br><br>En haut du panneau de gauche, utilisez <strong>Vous continuez une bannière précédente ? — Téléverser un PNG</strong> et sélectionnez le PNG que vous aviez téléchargé. Chaque champ, image, couleur et bouton sera restauré exactement comme auparavant. Faites vos modifications et régénérez.
+      <br><br><strong>Important :</strong> les données intégrées ne survivent que si le fichier PNG est transmis tel quel (courriel, stockage infonuagique, transfert de fichiers). Si quelqu'un ouvre le fichier dans Photoshop, Aperçu, Paint ou sur une plateforme de médias sociaux et le réenregistre ou le réexporte, les données sont supprimées. Conservez toujours le fichier <em>original</em> téléchargé si vous prévoyez le modifier plus tard.`,
     disclaimer: `<strong>Avis de non-responsabilité :</strong> Cet outil est fourni gratuitement par Sammons Creative. L'utilisateur final est seul responsable de vérifier l'exactitude, les erreurs, l'orthographe, les dates et la conformité légale (y compris les exigences relatives aux licences de tirage) de tout le contenu de la bannière avant impression ou publication. Sammons Creative n'assume aucune responsabilité pour les erreurs ou omissions dans le résultat généré. Aucune information ni image saisie dans cet outil n'est stockée, enregistrée ou transmise à un serveur.`,
   },
 };
@@ -246,6 +254,13 @@ function renderInstructionsDoc(lang) {
     <div>
       <h3>${S.dlH3}</h3>
       <p>${S.dlP}</p>
+    </div>
+  </div>
+  <div class="dl-section" style="background:linear-gradient(135deg,#fef3c7 0%,#fef9c3 100%);border-color:#fde68a;">
+    <div class="dl-icon">↻</div>
+    <div>
+      <h3>${S.reuseH4}</h3>
+      <p>${S.reuseP}</p>
     </div>
   </div>
   <div class="disclaimer">
