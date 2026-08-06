@@ -2772,17 +2772,23 @@ function fillPuck(ctx, x, y, w, h) {
     ctx.beginPath(); ctx.moveTo(x,ly2); ctx.lineTo(x+w,ly2); ctx.stroke();
   }
   ctx.restore();
-  // Puck moulded rings — anchored to the sport shape's actual centre so the
-  // two concentric rings sit precisely behind the white shape at every ratio.
+  // Puck moulded rings — anchored to the sport shape's actual centre AND
+  // sized relative to the shape's radius so the outer ring reads as a snug
+  // halo around the white shape without ever bleeding into the text or icon
+  // bands. Falls back to the original constants when shape geometry isn't
+  // available (e.g. legacy callers).
   const _pkFo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
   const _pkCx = x + w * 0.5;
   const _pkCy = _pkFo?.shapeCy ?? (y + h * 0.5);
+  const _pkSR = _pkFo?.shapeR;
+  const _pkOuterR = _pkSR ? _pkSR * 1.08 : Math.min(w, h) * 0.43;
+  const _pkInnerR = _pkSR ? _pkSR * 0.80 : Math.min(w, h) * 0.32;
   // Outer moulded edge ring
   ctx.strokeStyle='rgba(110,110,110,0.70)'; ctx.lineWidth=10;
-  ctx.beginPath(); ctx.arc(_pkCx,_pkCy,Math.min(w,h)*0.43,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(_pkCx,_pkCy,_pkOuterR,0,Math.PI*2); ctx.stroke();
   // Inner ring — subtle second moulded circle
   ctx.strokeStyle='rgba(80,80,80,0.30)'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.arc(_pkCx,_pkCy,Math.min(w,h)*0.32,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(_pkCx,_pkCy,_pkInnerR,0,Math.PI*2); ctx.stroke();
   // Surface reflection / sheen
   const sheen=ctx.createRadialGradient(x+w*0.35,y+h*0.25,5,x+w*0.35,y+h*0.25,w*0.55);
   sheen.addColorStop(0,'rgba(255,255,255,0.20)'); sheen.addColorStop(1,'rgba(0,0,0,0)');
@@ -2976,13 +2982,16 @@ function fillBasketball(ctx, x, y, w, h) {
   ctx.fillStyle=g; ctx.fillRect(x,y,w,h);
   // Court centre circle + centre-line midcourt stripe now share the shape's
   // vertical centre so the "half-court" reads as one aligned composition
-  // behind the white shape at every aspect ratio. The vertical line stays
-  // at the ticket's horizontal centre (already aligned with the shape).
+  // behind the white shape at every aspect ratio. The centre circle is
+  // sized relative to shapeR so it stays a snug halo around the white
+  // shape and never bleeds into the text or icon bands.
   const _bbFo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
   const _bbCx = x + w * 0.5;
   const _bbCy = _bbFo?.shapeCy ?? (y + h * 0.5);
+  const _bbSR = _bbFo?.shapeR;
+  const _bbCircleR = _bbSR ? _bbSR * 1.08 : Math.min(w, h) * 0.42;
   ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.arc(_bbCx,_bbCy,Math.min(w,h)*0.42,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(_bbCx,_bbCy,_bbCircleR,0,Math.PI*2); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(x+w*0.5,y+h*0.05); ctx.lineTo(x+w*0.5,y+h*0.95); ctx.stroke();
   ctx.beginPath(); ctx.arc(x-w*0.35,_bbCy,w*0.7,-0.5,0.5); ctx.stroke();
   ctx.beginPath(); ctx.arc(x+w*1.35,_bbCy,w*0.7,Math.PI-0.5,Math.PI+0.5); ctx.stroke();
@@ -5904,42 +5913,7 @@ function drawSportBand(ctx,x,y,w,h,side,cr,sport){
     ctx.closePath(); ctx.fill();
     ctx.restore();
   } else if(sport.name==='FIGURE SKATING') {
-    // Discreet skate-blade icon: a chromed curve with two mounting posts and a
-    // trailing swoosh (motion). Keeps the band consistent with all other sports
-    // while staying stylistically light.
-    ctx.save();
-    ctx.translate(icx, icy);
-    // Blade — chrome gradient stroke
-    const bladeGrad = ctx.createLinearGradient(0, -3, 0, 5);
-    bladeGrad.addColorStop(0,   'rgba(255,255,255,0.98)');
-    bladeGrad.addColorStop(0.5, 'rgba(220,230,240,0.85)');
-    bladeGrad.addColorStop(1,   'rgba(255,255,255,0.70)');
-    ctx.strokeStyle = bladeGrad;
-    ctx.lineWidth = 2.6;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(-14, 4);
-    ctx.quadraticCurveTo(-14, -1, -9, -1);
-    ctx.lineTo(9, -1);
-    ctx.quadraticCurveTo(14, -1, 14, 4);
-    ctx.stroke();
-    // Two mounting posts up to the boot line
-    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.moveTo(-6, -1); ctx.lineTo(-6, -7); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo( 6, -1); ctx.lineTo( 6, -7); ctx.stroke();
-    // Boot line
-    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-    ctx.lineWidth = 1.3;
-    ctx.beginPath(); ctx.moveTo(-8, -7); ctx.lineTo(8, -7); ctx.stroke();
-    // Motion swoosh — a light trailing curve suggesting a spin trail
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(-22, 8);
-    ctx.quadraticCurveTo(-14, 12, -2, 10);
-    ctx.stroke();
-    ctx.restore();
+    // No icon drawn — clean band for figure skating
   } else if(sport.name==='BASEBALL') {
     // Baseball — white ball with red stitching curves
     ctx.save();
