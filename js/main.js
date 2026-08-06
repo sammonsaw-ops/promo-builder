@@ -516,6 +516,9 @@ function updateFileLabel(input, labelId) {
         _warnIfCheckerboard(img, 'logo');
       };
       img.src = URL.createObjectURL(input.files[0]);
+      // Hide the Banner Colors pickers — the brand palette strip takes over.
+      const cc = document.getElementById('customColorSection');
+      if (cc) cc.style.display = 'none';
     }
     // Check prize images too
     if (labelId === 'prizeLabel') {
@@ -531,6 +534,12 @@ function updateFileLabel(input, labelId) {
     label.style.color = '';
     label.style.background = '';
     if (removeBtn) removeBtn.style.display = 'none';
+    if (labelId === 'logoLabel') {
+      // Logo cleared — bring the Banner Colors pickers back so the user can
+      // still control the logoless-render palette.
+      const cc = document.getElementById('customColorSection');
+      if (cc) cc.style.display = '';
+    }
   }
 }
 
@@ -569,8 +578,16 @@ function removeUploadedFile(inputId, labelId, removeBtnId) {
     label.style.borderColor = ''; label.style.color = ''; label.style.background = '';
   }
   if (btn) btn.style.display = 'none';
-  // Clear brand palette when logo is removed
-  if (inputId === 'logoUpload') hideBrandPaletteStrip();
+  // Clear brand palette when logo is removed and re-show the Banner Colors
+  // pickers so the user can still control the logoless-render palette.
+  if (inputId === 'logoUpload') {
+    hideBrandPaletteStrip();
+    const cc = document.getElementById('customColorSection');
+    if (cc) cc.style.display = '';
+    // Reset brandPalette to the current picker values so the next render
+    // isn't left holding whatever ColorThief last derived from the logo.
+    if (typeof updateCustomColors === 'function') updateCustomColors();
+  }
   // Clear the preview canvas so the old banner is no longer shown
   const canvas = document.getElementById('preview');
   if (canvas) canvas.classList.remove('visible');
@@ -596,16 +613,63 @@ function setStatus(type, text) {
   txt.textContent = text;
 }
 
+// 1x1 fully-transparent PNG. Used as the img.src when no logo has been
+// uploaded so the render pipeline can proceed without a real logo file.
+// drawLogoOnCard checks img._synthetic and skips drawing entirely, so no
+// visible marker is left in the logo slot.
+const TRANSPARENT_1X1_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+// Compose a full 5-key brand palette from just the two colours the user
+// picks in the Banner Colors section. mid/dark are shifted versions of the
+// primary; light and shapefill stay white so drawLogoOnCard's white-card
+// early-out keeps the banner clean when there's no logo.
+function computeCustomBrandPalette(primaryHex, accentHex) {
+  return {
+    primary:   primaryHex,
+    accent:    accentHex,
+    mid:       shiftHex(primaryHex, 0.35),   // lighter
+    dark:      shiftHex(primaryHex, -0.35),  // darker
+    light:     '#ffffff',
+    shapefill: '#ffffff',
+  };
+}
+
+function shiftHex(hex, factor) {
+  // factor > 0 lightens toward white, factor < 0 darkens toward black.
+  const [r, g, b] = hexToRgbArr(hex);
+  if (factor >= 0) {
+    return _rgbToHexStr(
+      Math.round(r + (255 - r) * factor),
+      Math.round(g + (255 - g) * factor),
+      Math.round(b + (255 - b) * factor),
+    );
+  }
+  const f = 1 + factor; // e.g. -0.35 → 0.65 multiplier
+  return _rgbToHexStr(Math.round(r * f), Math.round(g * f), Math.round(b * f));
+}
+
+// Called by the two Banner Color pickers whenever the user changes them.
+// Recomputes the full palette and schedules an auto-preview so the banner
+// re-renders with the new colours.
+function updateCustomColors() {
+  const primary = document.getElementById('customTicketColor')?.value || '#2563eb';
+  const accent  = document.getElementById('customTextColor')?.value  || '#f59e0b';
+  const primarySwatch = document.getElementById('customTicketSwatch');
+  const accentSwatch  = document.getElementById('customTextSwatch');
+  if (primarySwatch) primarySwatch.style.background = primary;
+  if (accentSwatch)  accentSwatch.style.background  = accent;
+  window.brandPalette = computeCustomBrandPalette(primary, accent);
+  scheduleAutoPreview();
+}
+
+// Seed brandPalette from the picker defaults at page load so the first
+// render (before the user touches anything) has a coherent palette.
+if (!window.brandPalette) {
+  window.brandPalette = computeCustomBrandPalette('#2563eb', '#f59e0b');
+}
+
 function generatePoster() {
   const S = UI_STRINGS[currentLang];
-  const file = document.getElementById('logoUpload').files[0];
-  if (!file) {
-    // No logo yet — render a low-fidelity placeholder so the user gets
-    // immediate visual feedback as they fill in the org name. The download
-    // section stays hidden until a real logo is uploaded.
-    renderPlaceholderPreview();
-    return;
-  }
   setStatus('', S.statusGenerating);
   const btn = document.querySelector('.btn-generate');
   if (btn) { btn.disabled = true; btn.innerHTML = `⏳ ${S.statusGenerating}`; }
@@ -620,71 +684,6 @@ function generatePoster() {
     if (btn) { btn.disabled = false; btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg> ${S.generateBtn}`; }
   }, 50);
 }
-
-// Low-fidelity preview shown before a logo is uploaded. Renders just the
-// current organization name over a neutral gradient with a hint telling
-// the user to upload a logo. The download section stays hidden — the
-// placeholder isn't meant to be exported.
-function renderPlaceholderPreview() {
-  const state = readFormState();
-  const canvas = dom('preview');
-  const { W, H } = RATIOS[currentRatio] || RATIOS['16:9'];
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  // Neutral brand-blue diagonal gradient
-  const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, '#2563eb');
-  grad.addColorStop(1, '#1d4ed8');
-  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
-
-  // Radial vignette to match the standard renderer's look
-  const vig = ctx.createRadialGradient(W/2, H/2, H*0.2, W/2, H/2, H*0.9);
-  vig.addColorStop(0, 'rgba(0,0,0,0)');
-  vig.addColorStop(1, 'rgba(0,0,0,0.35)');
-  ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
-
-  // Org name — big, centered, wraps if needed
-  const orgName = state.orgName || (currentLang === 'fr' ? 'Votre organisme' : 'Your Organization');
-  ctx.fillStyle = 'white';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  const nameSize = Math.round(H * 0.10);
-  ctx.font = `800 ${nameSize}px 'Plus Jakarta Sans', system-ui, sans-serif`;
-  // Simple word-wrap so long names don't overflow
-  const maxW = W * 0.86;
-  const words = orgName.split(/\s+/);
-  const lines = [];
-  let line = '';
-  for (const w of words) {
-    const test = line ? `${line} ${w}` : w;
-    if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
-    else line = test;
-  }
-  if (line) lines.push(line);
-  const lineH = Math.round(nameSize * 1.15);
-  const startY = H * 0.42 - ((lines.length - 1) * lineH) / 2;
-  lines.forEach((ln, i) => ctx.fillText(ln, W/2, startY + i * lineH));
-
-  // Hint text below
-  const hint = currentLang === 'fr'
-    ? 'Téléversez un logo pour voir l’aperçu complet'
-    : 'Upload a logo to see the full preview';
-  ctx.font = `500 ${Math.round(H * 0.028)}px 'Plus Jakarta Sans', system-ui, sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,0.75)';
-  ctx.fillText(hint, W/2, H * 0.42 + ((lines.length - 1) * lineH) / 2 + lineH * 0.9);
-
-  // Reveal preview canvas, hide placeholder card
-  canvas.classList.add('visible');
-  const ph = dom('previewPlaceholder');
-  if (ph) ph.style.display = 'none';
-
-  // Placeholder isn't downloadable — keep the download section hidden
-  const dl = dom('downloadSection');
-  if (dl) dl.classList.remove('visible');
-}
-
 
 // ═══════════════════════════════════════════════════════════════════════
 // LANGUAGE STRING HELPER
@@ -4167,7 +4166,10 @@ function _runGeneratePoster() {
 // x,y,w,h = the logo's draw position and size.
 // If window.brandPalette.shapefill is set (and is not pure white), a
 // padded rounded rectangle is drawn first so the logo is always legible.
+// In logoless mode the img carries a _synthetic marker — skip drawing
+// entirely so the banner has a clean empty logo slot.
 function drawLogoOnCard(ctx, img, x, y, w, h) {
+  if (img && img._synthetic) return;
   const fill = window.brandPalette?.shapefill || '#ffffff';
   const isWhiteFill = fill.replace(/\s/g,'').toLowerCase() === '#ffffff' ||
                       fill.replace(/\s/g,'').toLowerCase() === '#fff';
@@ -4198,7 +4200,9 @@ function generateStandardPoster() {
   const raffleType = state.raffleType;
   const showDetails = state.showDetails;
   const file = state.logoFile;
-  if(!file){alert(UI_STRINGS[currentLang].alertNoLogoShort);return;}
+  // No logo? Fall through — the render pipeline uses a transparent stand-in
+  // and drawLogoOnCard skips drawing for _synthetic imgs, so the banner
+  // renders normally (with the user's Banner Colors) minus the logo.
 
   const prizeFileEarly = (raffleType==='prize'||raffleType==='tirage') ? state.prizeFile : null;
   const hasPrizeFileEarly = prizeFileEarly && state.prizeInputActive;
@@ -4685,7 +4689,12 @@ function generateStandardPoster() {
       drawStdDetails(ctx,showDetails,rx,tw,ry,th,rtx,dsY,raffleType,primaryColor);
       ctx.restore();
     };
-    img.src=URL.createObjectURL(file);
+    if (file) {
+      img.src = URL.createObjectURL(file);
+    } else {
+      img._synthetic = true;
+      img.src = TRANSPARENT_1X1_PNG;
+    }
   }
   if(hasPrizeFileEarly){const ep=new Image();ep.onload=()=>doRender(ep);ep.src=URL.createObjectURL(prizeFileEarly);}
   else doRender(null);
@@ -4913,7 +4922,9 @@ function generateSportPoster() {
   const raffleType = state.raffleType;
   const showDetails = state.showDetails;
   const file = state.logoFile;
-  if(!file){alert(UI_STRINGS[currentLang].alertNoLogoShort);return;}
+  // No logo? Same story as generateStandardPoster: use a transparent
+  // stand-in so the render pipeline still runs; drawLogoOnCard skips
+  // drawing for _synthetic imgs.
 
   const sport=SPORTS[currentSport];
   const W=canvas.width, H=canvas.height;
@@ -5376,7 +5387,12 @@ function generateSportPoster() {
       finishRightTicket();
     }
   };
-  img.src=URL.createObjectURL(file);
+  if (file) {
+    img.src = URL.createObjectURL(file);
+  } else {
+    img._synthetic = true;
+    img.src = TRANSPARENT_1X1_PNG;
+  }
 }
 
 // Draw 50/50 or PRIZE/RAFFLE text centered inside the sport shape.
@@ -6239,7 +6255,7 @@ Object.assign(window, {
   resetBrandPalette, selectCustomRatio, selectRatio, selectSport,
   setMode, toggleAdditional,
   // oninput=
-  formatCommaNumber, setBrandSwatchColor, updateCustomPreview, updateQrPreview,
+  formatCommaNumber, setBrandSwatchColor, updateCustomColors, updateCustomPreview, updateQrPreview,
   // onchange=
   togglePrizeImage, updateFileLabel,
   // referenced from other JS (used to be implicit globals)

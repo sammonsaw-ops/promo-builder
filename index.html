@@ -214,6 +214,27 @@
                 </div>
                 <button type="button" id="logoRemoveBtn" onclick="removeUploadedFile('logoUpload','logoLabel','logoRemoveBtn')" style="display:none;margin-top:6px;padding:4px 12px;font-size:11px;background:#fff0f0;border:1px solid #e57373;border-radius:6px;color:#c62828;cursor:pointer;">✕ Remove Logo</button>
 
+                <!-- ── Custom Banner Colors (used when no logo is uploaded) ── -->
+                <div id="customColorSection" style="margin-top:10px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:var(--border-r);padding:14px 16px;">
+                  <div style="font-size:0.65rem;font-weight:700;color:var(--gray-500);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">
+                    Banner Colors <span id="customColorHint" style="font-size:0.85em;font-weight:500;color:var(--gray-400);text-transform:none;letter-spacing:0;">— used when no logo is uploaded</span>
+                  </div>
+                  <div style="display:flex;gap:14px;">
+                    <div class="bp-swatch-wrap">
+                      <div class="bp-swatch" id="customTicketSwatch" style="background:#2563eb;">
+                        <input type="color" id="customTicketColor" value="#2563eb" oninput="updateCustomColors()">
+                      </div>
+                      <span class="bp-swatch-lbl" id="customTicketLbl">Ticket</span>
+                    </div>
+                    <div class="bp-swatch-wrap">
+                      <div class="bp-swatch" id="customTextSwatch" style="background:#f59e0b;">
+                        <input type="color" id="customTextColor" value="#f59e0b" oninput="updateCustomColors()">
+                      </div>
+                      <span class="bp-swatch-lbl" id="customTextLbl">Text</span>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- ── Brand Palette Strip ── -->
                 <div id="brandPaletteStrip">
                   <div class="bp-header">
