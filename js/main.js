@@ -1,5 +1,10 @@
 // ── Sub-module imports ───────────────────────────────────────────────────────
 import { openInstructions as _openInstructions } from './instructions.js';
+import {
+  injectStateIntoPng, extractStateFromPng,
+  fileToRecord, recordToFile,
+  STATE_VERSION,
+} from './state-io.js';
 
 // Local wrapper — the markup calls onclick="openInstructions()" and the
 // window bridge below re-exposes this. Passing currentLang through keeps
@@ -1297,6 +1302,10 @@ function dom(id) {
   return el;
 }
 
+// Object URL for the last generated download; revoked on each new render
+// so we don't leak blob memory.
+let _lastDownloadUrl = null;
+
 function readFormState() {
   const prizeInput = dom('prizeImageUpload');
   const packages = [];
@@ -1328,6 +1337,255 @@ function readFormState() {
     lang:             currentLang,
     brand:            window.brandPalette || null,
   };
+}
+
+// ── State capture / restore (round-trip via embedded PNG chunk) ────────────
+// captureBannerState builds a serialisable snapshot of every DOM-owned form
+// value plus the logo/prize image bytes. applyBannerState rehydrates it.
+// The two are kept together so the shape of the snapshot lives in one place.
+async function captureBannerState() {
+  const packages = [];
+  document.querySelectorAll('.package-row').forEach(r => {
+    const t = r.querySelector('.package-tickets')?.value || '';
+    const p = r.querySelector('.package-price')?.value || '';
+    if (t || p) packages.push({ tickets: t, price: p });
+  });
+
+  const [logoRec, prizeRec] = await Promise.all([
+    fileToRecord(document.getElementById('logoUpload')?.files?.[0]),
+    fileToRecord(document.getElementById('prizeImageUpload')?.files?.[0]),
+  ]);
+
+  return {
+    v: STATE_VERSION,
+    savedAt: new Date().toISOString(),
+    form: {
+      orgName:          dom('orgName')?.value || '',
+      raffleType:       dom('raffleType')?.value || '5050',
+      showDetails:      dom('toggleSwitch')?.classList.contains('active') || false,
+      licenceNumber:    dom('licenceNumber')?.value || '',
+      totalTickets:     dom('totalTickets')?.value || '',
+      prizeAmount:      dom('prizeAmount')?.value || '',
+      prizeDescription: dom('prizeDescription')?.value || '',
+      prizeValue:       dom('prizeValue')?.value || '',
+      drawDate:         dom('drawDate')?.value || '',
+      drawTime:         dom('drawTime')?.value || '',
+      drawLocation:     dom('drawLocation')?.value || '',
+      qrUrl:            dom('qrUrl')?.value || '',
+      packages,
+      mode:             currentMode,
+      sport:            currentSport,
+      ratio:            currentRatio,
+      lang:             currentLang,
+      customW:          parseInt(dom('crpW')?.value, 10) || null,
+      customH:          parseInt(dom('crpH')?.value, 10) || null,
+      customTicketColor: dom('customTicketColor')?.value || null,
+      customTextColor:   dom('customTextColor')?.value || null,
+      brand:             window.brandPalette || null,
+    },
+    logo:  logoRec,
+    prize: prizeRec,
+  };
+}
+
+// Rehydrate the form from a captured snapshot. Order matters:
+//   1. raffleType first — its onchange handler flips language + prize sections.
+//   2. Text values, then packages, then mode / sport / ratio (custom size).
+//   3. Restore uploaded files via DataTransfer without dispatching change,
+//      then override brandPalette + palette strip with the saved values so
+//      ColorThief's automatic extraction doesn't clobber the user's edits.
+//   4. Detail toggle last, then generatePoster().
+async function applyBannerState(state) {
+  if (!state || !state.form) throw new Error('Empty or malformed state');
+  const f = state.form;
+
+  // 1. Raffle type + language. Setting via .value and dispatching change
+  //    triggers togglePrizeImage which handles language flip + prize UI.
+  const rt = dom('raffleType');
+  if (rt && typeof f.raffleType === 'string') {
+    rt.value = f.raffleType;
+    rt.dispatchEvent(new Event('change'));
+  }
+
+  // 2a. Text inputs
+  const setVal = (id, v) => { const el = dom(id); if (el && v != null) el.value = v; };
+  setVal('orgName', f.orgName);
+  setVal('licenceNumber', f.licenceNumber);
+  setVal('totalTickets', f.totalTickets);
+  setVal('prizeAmount', f.prizeAmount);
+  setVal('prizeDescription', f.prizeDescription);
+  setVal('prizeValue', f.prizeValue);
+  setVal('drawDate', f.drawDate);
+  setVal('drawTime', f.drawTime);
+  setVal('drawLocation', f.drawLocation);
+  setVal('qrUrl', f.qrUrl);
+  if (f.qrUrl) updateQrPreview(f.qrUrl);
+
+  // 2b. Packages — clear existing rows, then rebuild.
+  const pc = document.getElementById('packageContainer');
+  if (pc) {
+    pc.innerHTML = '';
+    const rows = Array.isArray(f.packages) && f.packages.length ? f.packages : [{ tickets: '', price: '' }];
+    rows.forEach(p => {
+      addPackage();
+      const last = pc.lastElementChild;
+      if (last) {
+        const t = last.querySelector('.package-tickets');
+        const pr = last.querySelector('.package-price');
+        if (t) t.value = p.tickets ?? '';
+        if (pr) pr.value = p.price ?? '';
+      }
+    });
+    // Ensure the single default row is visible even when the saved list is empty.
+    if (!pc.children.length) addPackage();
+  }
+
+  // 2c. Mode + sport
+  if (f.mode) setMode(f.mode);
+  if (f.sport) {
+    const sBtn = document.querySelector(`.sport-btn[data-sport="${f.sport}"]`);
+    if (sBtn) selectSport(sBtn);
+  }
+
+  // 2d. Ratio (custom needs W/H committed first)
+  if (f.ratio === 'custom' && f.customW && f.customH) {
+    const wIn = dom('crpW'), hIn = dom('crpH');
+    if (wIn) wIn.value = f.customW;
+    if (hIn) hIn.value = f.customH;
+    const cBtn = document.getElementById('ratioCustomBtn');
+    if (cBtn) selectCustomRatio(cBtn);
+    commitCustomRatio();
+  } else if (f.ratio) {
+    const rBtn = document.querySelector(`.ratio-btn[data-ratio="${f.ratio}"]`);
+    if (rBtn) selectRatio(rBtn);
+  }
+
+  // 3. Restore custom color pickers (they seed brandPalette via updateCustomColors)
+  if (f.customTicketColor) {
+    const el = dom('customTicketColor'); if (el) el.value = f.customTicketColor;
+  }
+  if (f.customTextColor) {
+    const el = dom('customTextColor'); if (el) el.value = f.customTextColor;
+  }
+  if (f.customTicketColor || f.customTextColor) updateCustomColors();
+
+  // 3a. Restore files. Skip the change event so updateFileLabel doesn't
+  //     re-extract a palette that overwrites the one we're about to apply.
+  await _restoreFileInput('logoUpload', 'logoLabel', 'logoRemoveBtn', state.logo);
+  await _restoreFileInput('prizeImageUpload', 'prizeLabel', 'prizeRemoveBtn', state.prize);
+
+  // 3b. Brand palette + palette-strip visibility. When a logo is present we
+  //     show the palette strip and hide the Banner Colors pickers, mirroring
+  //     what updateFileLabel does when the user uploads a logo interactively.
+  if (f.brand && typeof f.brand === 'object') {
+    window.brandPalette = { ...f.brand };
+    _updatePaletteUI(window.brandPalette);
+  }
+  const hasLogo = !!state.logo;
+  const strip = document.getElementById('brandPaletteStrip');
+  const customCol = document.getElementById('customColorSection');
+  if (strip)     strip.style.display     = hasLogo ? 'block' : 'none';
+  if (customCol) customCol.style.display = hasLogo ? 'none'  : '';
+
+  // 4. Details toggle — click it once if the saved state disagrees with the
+  //    current DOM. toggleAdditional handles the rest (prize sections etc.).
+  const ts = dom('toggleSwitch');
+  if (ts && !!f.showDetails !== ts.classList.contains('active')) {
+    toggleAdditional();
+  }
+
+  // Trigger a full re-render now that everything is in place.
+  clearTimeout(_autoPreviewTimer);
+  generatePoster();
+}
+
+// Shove a File back into a file input via DataTransfer, then update its
+// visual label + remove button so the UI matches what the user would see
+// after a manual upload. We intentionally do NOT dispatch a 'change' event
+// — the caller controls when to re-render / re-derive palette.
+async function _restoreFileInput(inputId, labelId, removeBtnId, rec) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (!rec) return;
+  const file = recordToFile(rec);
+  if (!file) return;
+  try {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+  } catch (e) {
+    // Safari <14 / older Firefox may not allow DataTransfer assignment to
+    // a file input. Nothing we can do — the user will need to re-attach.
+    console.warn(`Restore of ${inputId} skipped — browser blocks file-input write:`, e);
+    return;
+  }
+  const label = document.getElementById(labelId);
+  if (label) {
+    const span = label.querySelector('span:last-child');
+    if (span) span.textContent = file.name;
+    label.style.borderColor = 'var(--success)';
+    label.style.color = 'var(--success)';
+    label.style.background = '#f0fdf4';
+  }
+  const rmBtn = document.getElementById(removeBtnId);
+  if (rmBtn) rmBtn.style.display = 'inline-block';
+}
+
+// Handler for the restore file input on the left panel. Reads the PNG,
+// extracts our embedded state chunk, and hands off to applyBannerState.
+async function restoreFromPng(input) {
+  const file = input?.files?.[0];
+  if (!file) return;
+  const S = UI_STRINGS[currentLang];
+  const restoreMsgs = _restoreMessages();
+  setStatus('', restoreMsgs.loading);
+  try {
+    const state = await extractStateFromPng(file);
+    if (!state) {
+      _showRestoreError(restoreMsgs.noData);
+      setStatus('', S.statusReady);
+      return;
+    }
+    await applyBannerState(state);
+    if (window.PB?.Toast) {
+      window.PB.Toast.show({ title: restoreMsgs.okTitle, message: restoreMsgs.okBody, kind: 'success', duration: 4000 });
+    } else {
+      showToast(restoreMsgs.okBody, 4000);
+    }
+  } catch (err) {
+    console.error('Restore failed:', err);
+    _showRestoreError(restoreMsgs.badFile);
+    setStatus('', S.statusReady);
+  } finally {
+    // Clear the input so re-selecting the same file still fires change.
+    input.value = '';
+  }
+}
+
+function _restoreMessages() {
+  return currentLang === 'fr'
+    ? {
+        loading: 'Lecture de la bannière…',
+        noData:  'Ce PNG ne contient pas de données modifiables. Il a peut-être été ré-exporté par un autre outil.',
+        badFile: 'Impossible de lire ce PNG. Veuillez sélectionner une bannière téléchargée depuis cet outil.',
+        okTitle: 'Bannière restaurée',
+        okBody:  'Tous les champs, le logo et l\'image du prix ont été restaurés. Modifiez vos informations et régénérez.',
+      }
+    : {
+        loading: 'Reading banner…',
+        noData:  'This PNG does not contain editable data. It may have been re-exported by another tool.',
+        badFile: 'Could not read this PNG. Please select a banner downloaded from this tool.',
+        okTitle: 'Banner restored',
+        okBody:  'All fields, logo and prize image have been restored. Edit your details and re-generate.',
+      };
+}
+
+function _showRestoreError(msg) {
+  if (window.PB?.Toast) {
+    window.PB.Toast.show({ title: 'Restore failed', message: msg, kind: 'danger', duration: 5000 });
+  } else {
+    alert(msg);
+  }
 }
 
 // Cache ColorThief.getPalette results per (Image, N). Keyed by Image via
@@ -6398,9 +6656,11 @@ async function finaliseDownload(){
 
   // SC logo removed per client request — banners are clean / unbranded
 
-  // Use the preview canvas directly (no duplicate watermark canvas)
+  // Use the preview canvas directly (no duplicate watermark canvas). We now
+  // route through toBlob → inject iTXt state chunk → Object URL so the
+  // downloaded PNG carries a re-uploadable snapshot of every form field
+  // plus the uploaded logo/prize image bytes.
   const dl = dom('downloadLink');
-  dl.href = src.toDataURL('image/png');
   const ratioStr = currentRatio === 'letter'  ? 'letter-8x11-300dpi'
                  : currentRatio === 'custom'  ? `${RATIOS.custom?.W||0}x${RATIOS.custom?.H||0}`
                  : currentRatio.replace(':','-').replace('.','p');
@@ -6420,15 +6680,28 @@ async function finaliseDownload(){
   const dims = dom('previewDims');
   if (dims) dims.textContent = `${src.width} × ${src.height}`;
 
-  // Show file size
-  try {
-    const dataUrl = src.toDataURL('image/png');
-    const bytes = Math.round((dataUrl.length - 22) * 3/4);
-    const kb = (bytes / 1024).toFixed(0);
-    const ratioLabel = currentRatio === 'letter' ? 'Letter · 8.5×11 in · 300 DPI' : currentRatio;
+  // Build the PNG blob, embed state, then set the download href to a blob
+  // URL. Fall back to the plain data URL if anything goes wrong so a broken
+  // encoder never prevents the user from getting their banner.
+  const pngBlob = await new Promise((resolve) => src.toBlob(resolve, 'image/png'));
+  let finalBlob = pngBlob;
+  const ratioLabel = currentRatio === 'letter' ? 'Letter · 8.5×11 in · 300 DPI' : currentRatio;
+  if (pngBlob) {
+    try {
+      const snapshot = await captureBannerState();
+      finalBlob = await injectStateIntoPng(pngBlob, snapshot);
+    } catch(e) {
+      console.warn('State embed failed, downloading plain PNG:', e);
+      finalBlob = pngBlob;
+    }
+    if (_lastDownloadUrl) URL.revokeObjectURL(_lastDownloadUrl);
+    _lastDownloadUrl = URL.createObjectURL(finalBlob);
+    dl.href = _lastDownloadUrl;
+    const kb = (finalBlob.size / 1024).toFixed(0);
     setStatus('ready', UI_STRINGS[currentLang].statusBannerReady(ratioLabel, kb));
-  } catch(e) {
-    const ratioLabel = currentRatio === 'letter' ? 'Letter · 8.5×11 in · 300 DPI' : currentRatio;
+  } else {
+    // toBlob unsupported / failed — fall back to the original data URL path.
+    dl.href = src.toDataURL('image/png');
     setStatus('ready', UI_STRINGS[currentLang].statusBannerReadyNoKb(ratioLabel));
   }
 }
@@ -6451,7 +6724,7 @@ Object.assign(window, {
   // oninput=
   formatCommaNumber, setBrandSwatchColor, updateCustomColors, updateCustomPreview, updateQrPreview,
   // onchange=
-  togglePrizeImage, updateFileLabel,
+  togglePrizeImage, updateFileLabel, restoreFromPng,
   // referenced from other JS (used to be implicit globals)
   scheduleAutoPreview,
 });

@@ -47,6 +47,19 @@
     <aside class="controls-panel" aria-label="Banner controls">
       <div class="controls-inner">
 
+        <!-- Continue-from-previous-banner strip: re-uploads a PNG generated
+             by this tool and rehydrates every form field + attached image
+             from the iTXt state chunk embedded on download. -->
+        <div id="restoreStrip" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;margin-bottom:14px;display:flex;gap:10px;align-items:center;">
+          <span style="font-size:1rem;flex-shrink:0;" aria-hidden="true">↻</span>
+          <div style="flex:1;min-width:0;">
+            <div id="restoreStripTitle" style="font-size:0.72rem;font-weight:700;color:#1e40af;line-height:1.35;">Continuing an earlier banner?</div>
+            <div id="restoreStripSub" style="font-size:0.66rem;color:#1e40af;line-height:1.4;opacity:0.85;">Re-upload the PNG you downloaded to restore every field, logo, and prize image.</div>
+          </div>
+          <label for="restoreFileInput" id="restoreStripBtn" style="flex-shrink:0;padding:7px 12px;font-size:0.7rem;font-weight:700;background:#2563eb;color:#fff;border-radius:6px;cursor:pointer;letter-spacing:0.02em;white-space:nowrap;">Upload PNG</label>
+          <input type="file" id="restoreFileInput" accept="image/png" onchange="restoreFromPng(this)" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+        </div>
+
         <!-- STEP 1: Raffle Type (also selects language) -->
         <div class="step-section">
           <div class="step-header">
@@ -440,6 +453,9 @@
           <a id="downloadLink" download="raffle-promo-banner.png" class="btn-download">
             ⬇ Download PNG
           </a>
+        </div>
+        <div id="downloadReuseHint" style="width:100%;font-size:0.66rem;color:#475467;line-height:1.5;margin-top:8px;padding:6px 10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;">
+          💾 <strong>Editable file:</strong> this PNG stores your form data. Keep the original and re-upload it here later — e.g. to swap in your approved licence number — without re-entering anything. Re-saving through other image tools may strip the embedded data.
         </div>
       </div>
 
