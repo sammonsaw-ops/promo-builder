@@ -4400,26 +4400,36 @@ function generateStandardPoster() {
         const orgFontSize2 = Math.max(18, Math.round(th * 0.062));
         const divSpacing = Math.round(th * 0.04);
 
-        // Smart text scaling for org name
-        const _sqOrgFit = fitText(ctx, orgName.toUpperCase(), tw - 70, orgFontSize2, 12);
+        // Smart text scaling for org name — allow a larger cap when there is no
+        // logo, so the name can grow into the space it would otherwise share
+        // with the logo (still constrained by fitText's own shrink loop).
+        const _sqNoLogo = !!img._synthetic;
+        const _sqOrgStartFS = _sqNoLogo ? Math.round(th * 0.11) : orgFontSize2;
+        const _sqOrgFit = fitText(ctx, orgName.toUpperCase(), tw - 70, _sqOrgStartFS, 12);
         const lineH2 = _sqOrgFit.lineHeight;
 
-        // Total block: logo + gap + divider + gap + org lines
-        const leftBlockH = logoH2 + divSpacing + 8 + divSpacing * 0.5 + lineH2 * _sqOrgFit.lines.length;
+        // Total block: (logo + divider) + org lines. When there is no logo, we
+        // drop both the logo allocation and the divider so the org name centres
+        // on its own inside the ticket instead of sitting low.
+        const _sqLogoAlloc = _sqNoLogo ? 0 : logoH2;
+        const _sqDivAlloc  = _sqNoLogo ? 0 : (divSpacing + 8 + divSpacing * 0.5);
+        const leftBlockH = _sqLogoAlloc + _sqDivAlloc + lineH2 * _sqOrgFit.lines.length;
         // Centre within top ticket
         const leftBlockTop = ly + (th - leftBlockH) / 2;
 
-        // Draw logo (on grey card if shapefill is set)
+        // Draw logo (on grey card if shapefill is set) — no-op when _synthetic
         drawLogoOnCard(ctx, img, lcx - logoW2/2, leftBlockTop, logoW2, logoH2);
 
-        // Draw divider
-        const divY2 = leftBlockTop + logoH2 + divSpacing;
-        drawOrnDiv(ctx, lcx, divY2, tw * 0.35, primaryColor);
+        // Draw divider only when a logo is present (nothing to divide otherwise)
+        const divY2 = leftBlockTop + _sqLogoAlloc + (_sqNoLogo ? 0 : divSpacing);
+        if (!_sqNoLogo) drawOrnDiv(ctx, lcx, divY2, tw * 0.35, primaryColor);
 
         // Draw org name
         ctx.font = `bold ${_sqOrgFit.fontSize}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
         ctx.textAlign = 'center';
-        const orgBaseY = divY2 + divSpacing * 0.5 + _sqOrgFit.fontSize;
+        const orgBaseY = _sqNoLogo
+          ? leftBlockTop + _sqOrgFit.fontSize
+          : divY2 + divSpacing * 0.5 + _sqOrgFit.fontSize;
         // Strong shadow ensures legibility on any background
         ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=Math.max(2,_sqOrgFit.fontSize*0.07); ctx.lineJoin='round';
         strokeFitLines(ctx, _sqOrgFit.lines, lcx, orgBaseY, lineH2);
@@ -4524,25 +4534,35 @@ function generateStandardPoster() {
         const logoW2   = Math.round(img.width  * lScale);
         const logoH2   = Math.round(img.height * lScale);
 
-        // Org name font — smart scaling with fitText
-        const _cOrgStartFS = Math.max(12, Math.round(th * 0.07));
+        // Org name font — smart scaling with fitText. When no logo, allow a
+        // larger starting size so the name grows into the vacated space.
+        const _cNoLogo = !!img._synthetic;
+        const _cOrgStartFS = _cNoLogo
+          ? Math.max(20, Math.round(th * 0.13))
+          : Math.max(12, Math.round(th * 0.07));
         const _cOrgFit = fitText(ctx, orgName.toUpperCase(), avW * 0.92, _cOrgStartFS, 10);
         const orgFS2 = _cOrgFit.fontSize;
         const orgLH2   = _cOrgFit.lineHeight;
         const divGap2  = Math.round(th * 0.035);
         const divH2    = 8;
 
-        // Measure total block, center it vertically within the ticket
-        const leftBlockH = logoH2 + divGap2 + divH2 + divGap2 * 0.5 + orgLH2 * _cOrgFit.lines.length;
+        // Measure total block, center it vertically within the ticket. When
+        // there is no logo, drop both the logo allocation and the divider so
+        // the org name centres on its own.
+        const _cLogoAlloc = _cNoLogo ? 0 : logoH2;
+        const _cDivAlloc  = _cNoLogo ? 0 : (divGap2 + divH2 + divGap2 * 0.5);
+        const leftBlockH = _cLogoAlloc + _cDivAlloc + orgLH2 * _cOrgFit.lines.length;
         let curLY2 = ly + (th - leftBlockH) / 2;
 
-        // Draw logo (on grey card if shapefill is set)
+        // Draw logo (on grey card if shapefill is set) — no-op when _synthetic
         drawLogoOnCard(ctx, img, lcx2 - logoW2 / 2, curLY2, logoW2, logoH2);
-        curLY2 += logoH2 + divGap2;
+        curLY2 += _cLogoAlloc + (_cNoLogo ? 0 : divGap2);
 
-        // Draw ornament divider
-        drawOrnDiv(ctx, lcx2, curLY2, Math.min(avW * 0.35, 120), primaryColor);
-        curLY2 += divH2 + divGap2 * 0.5;
+        // Draw ornament divider only when a logo is present
+        if (!_cNoLogo) {
+          drawOrnDiv(ctx, lcx2, curLY2, Math.min(avW * 0.35, 120), primaryColor);
+          curLY2 += divH2 + divGap2 * 0.5;
+        }
 
         // Draw org name (stroke pass then fill pass for legibility)
         ctx.font = `bold ${orgFS2}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
@@ -4702,22 +4722,34 @@ function generateStandardPoster() {
 
       // ── NON-SQUARE STANDARD LAYOUT (original) ────────────────────────────────
       // Logo
+      const _nsNoLogo = !!img._synthetic;
       const ls=isPortrait ? Math.round(th*0.52) : 280;
       const lx2=lx+(tw-ls)/2, ly2=ly+Math.round(th*0.08);
       const sc=Math.min(ls/img.width,ls/img.height);
       const _lw=img.width*sc, _lh=img.height*sc;
       drawLogoOnCard(ctx,img,lx2+(ls-_lw)/2,ly2+(ls-_lh)/2,_lw,_lh);
       const divY=ly2+ls+Math.round(th*0.04);
-      drawOrnDiv(ctx,lx+tw/2,divY,tw*0.35,primaryColor);
-      const orgFontSize = isPortrait ? Math.round(th*0.055) : 30;
+      // Divider only when a logo is present (nothing to separate otherwise)
+      if (!_nsNoLogo) drawOrnDiv(ctx,lx+tw/2,divY,tw*0.35,primaryColor);
+      // Org name font — larger starting cap when no logo, so it can grow into
+      // the vacated space instead of sitting at the standard header size.
+      const orgFontSize = _nsNoLogo
+        ? Math.round(th * (isPortrait ? 0.11 : 0.16))
+        : (isPortrait ? Math.round(th*0.055) : 30);
       // Org name: smart text scaling — shrinks and wraps to fit
       const _orgFit = fitText(ctx, orgName.toUpperCase(), tw - 70, orgFontSize, 12);
       ctx.font=`bold ${_orgFit.fontSize}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
       ctx.textAlign='center';
       ctx.strokeStyle = isDarkPrimary(primaryColor) ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)';
       ctx.lineWidth=Math.max(2,_orgFit.fontSize*0.07); ctx.lineJoin='round';
+      // Vertical position: when no logo, centre the whole org-name block within
+      // the ticket for balance. Otherwise anchor below the ornamental divider.
+      const _orgLines = _orgFit.lines.length;
+      const _orgBlockH = _orgFit.fontSize + _orgFit.lineHeight * (_orgLines - 1);
+      const _orgStartY = _nsNoLogo
+        ? (ly + (th - _orgBlockH) / 2 + _orgFit.fontSize)
+        : (divY + _orgFit.fontSize + 6);
       // stroke pass
-      const _orgStartY = divY+_orgFit.fontSize+6;
       strokeFitLines(ctx, _orgFit.lines, lx+tw/2, _orgStartY, _orgFit.lineHeight);
       ctx.fillStyle=primaryColor;
       const _sd3 = isDarkPrimary(primaryColor) ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.20)';
@@ -5435,10 +5467,11 @@ function generateSportPoster() {
     // Legacy helpers — kept for compatibility but now unused
     function drawStyledLine(text, cx, y) { /* replaced by drawTextBand */ }
 
-    // 7. Left ticket: logo inside shape.
+    // 7. Left ticket: logo (or org name text-mark when no logo) inside shape.
     // White logos: draw as-is — grey card shape fill provides the contrast background.
     // Coloured logos: run v54 background removal to strip any white/plain background.
-    {
+    const _noLogo = !!img._synthetic;
+    if (!_noLogo) {
       const pad=0.72, sz=lShape.R*2*pad;
       const sc=Math.min(sz/img.width,sz/img.height);
       const iw=img.width*sc, ih=img.height*sc;
@@ -5454,6 +5487,11 @@ function generateSportPoster() {
       sportShapePath(ctx,lx,ly,tw,th,currentSport,lCy,lMaxR); ctx.clip();
       ctx.drawImage(logoToDraw,lShape.cx-iw/2,lShape.cy-ih/2,iw,ih);
       ctx.restore();
+    } else {
+      // No logo: render the organization name as a text-mark centered inside
+      // the shape (fills the visual role the logo would have occupied) so the
+      // shape doesn't read as empty.
+      drawOrgNameInShape(ctx, lShape, orgLabel, accentColor);
     }
 
     drawSportBand(ctx,lx,ly,tw,th,lSide,cr,sport);
@@ -5490,7 +5528,9 @@ function generateSportPoster() {
       // Only draw sport band on bottom ticket in landscape (not portrait top/bottom layout)
       if (!isPortrait) drawSportBand(ctx,rx,ry,tw,th,rSide,cr,sport);
       // ── TEXT BANDS ALWAYS LAST — rendered on top of every graphic element ───
-      drawOrgName(lcx);
+      // When no logo, the org name is rendered inside the left shape as a
+      // text-mark, so the outer band would be a duplicate. Skip it.
+      if (!_noLogo) drawOrgName(lcx);
       drawRaffleLabel(rcx);
       finaliseDownload();
     }
@@ -5611,6 +5651,108 @@ function drawRaffleTextInShape(ctx, rcx, shapeInfo, raffleType, accentTextCol, a
   ctx.fillStyle=subFill;
   ctx.shadowColor='rgba(0,0,0,0.12)'; ctx.shadowBlur=3;
   ctx.fillText(subTxt,rcx,subY);
+  ctx.restore();
+}
+
+// When no logo is uploaded, render the organization name as a text-mark
+// centered inside the sport shape. Fills the visual role the logo would have
+// occupied so the shape doesn't read as empty. Auto-wraps up to 3 lines and
+// binary-search sizes to fit within an inscribed square of the shape.
+function drawOrgNameInShape(ctx, shapeInfo, orgLabel, accentColor) {
+  if (!orgLabel) return;
+  const { cx, cy, R } = shapeInfo;
+  // Constrain text to an inscribed square (√2·R side) with generous padding so
+  // long names don't kiss the shape border on any sport (circle, oval, pentagon).
+  const inscribed = R * Math.SQRT2;
+  const maxW = inscribed * 0.82;
+  const maxH = inscribed * 0.78;
+
+  // Auto-wrap into 1, 2, or 3 lines and pick the split with the smallest max width.
+  function bestSplit(text, targetLines) {
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length <= 1 || targetLines === 1) return [text];
+    const measure = (t) => ctx.measureText(t).width;
+    let best = null;
+    const tryLines = (lines) => {
+      const mw = Math.max(...lines.map(measure));
+      if (!best || mw < best.mw) best = { mw, lines };
+    };
+    if (targetLines === 2) {
+      for (let i = 1; i < words.length; i++) {
+        tryLines([words.slice(0, i).join(' '), words.slice(i).join(' ')]);
+      }
+    } else {
+      for (let i = 1; i < words.length - 1; i++) {
+        for (let j = i + 1; j < words.length; j++) {
+          tryLines([
+            words.slice(0, i).join(' '),
+            words.slice(i, j).join(' '),
+            words.slice(j).join(' '),
+          ]);
+        }
+      }
+    }
+    return best?.lines ?? [text];
+  }
+
+  // Binary-search a font size where every line fits in maxW AND the block fits maxH.
+  const measureAtSize = (lines, fs) => {
+    ctx.font = `900 ${fs}px 'Plus Jakarta Sans','Helvetica Neue',sans-serif`;
+    ctx.letterSpacing = (fs * 0.02) + 'px';
+    const w = Math.max(...lines.map(l => ctx.measureText(l).width));
+    ctx.letterSpacing = '0px';
+    return { w, h: lines.length * fs * 1.12 };
+  };
+
+  const wordCount = orgLabel.split(/\s+/).filter(Boolean).length;
+  const maxTryLines = Math.min(3, Math.max(1, wordCount));
+  let best = { lines: [orgLabel], fs: 12, dims: { w: Infinity, h: Infinity } };
+  for (let nLines = 1; nLines <= maxTryLines; nLines++) {
+    const lines = bestSplit(orgLabel, nLines);
+    let lo = 12, hi = Math.round(R * 0.60), fit = 0;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      const d = measureAtSize(lines, mid);
+      if (d.w <= maxW && d.h <= maxH) { fit = mid; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    if (fit > best.fs) best = { lines, fs: fit, dims: measureAtSize(lines, fit) };
+  }
+
+  // Colour: prefer a darkened accent for brand feel; fall back to near-black
+  // when the accent is too pale to be readable on white.
+  let fill = '#111827';
+  if (accentColor) {
+    const [ar, ag, ab] = accentColor;
+    const lin = v => (v /= 255) <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    const lum = 0.2126 * lin(ar) + 0.7152 * lin(ag) + 0.0722 * lin(ab);
+    // Darken until we hit ≥ 5:1 on white, capping at pure black
+    let scale = 1;
+    let cur = lum;
+    for (let i = 0; i < 20 && (1.05 / (cur + 0.05)) < 5.0; i++) {
+      scale *= 0.85;
+      const r2 = ar * scale, g2 = ag * scale, b2 = ab * scale;
+      cur = 0.2126 * lin(r2) + 0.7152 * lin(g2) + 0.0722 * lin(b2);
+    }
+    fill = `rgb(${Math.round(ar * scale)},${Math.round(ag * scale)},${Math.round(ab * scale)})`;
+  }
+
+  ctx.save();
+  ctx.font = `900 ${best.fs}px 'Plus Jakarta Sans','Helvetica Neue',sans-serif`;
+  ctx.letterSpacing = (best.fs * 0.02) + 'px';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  const lineH = best.fs * 1.12;
+  const blockH = best.lines.length * lineH;
+  const firstBaselineY = cy - blockH / 2 + best.fs;
+  // Subtle text shadow for depth — never so strong that it competes with the mark
+  ctx.shadowColor = 'rgba(0,0,0,0.10)';
+  ctx.shadowBlur = 2;
+  ctx.shadowOffsetY = 1;
+  ctx.fillStyle = fill;
+  best.lines.forEach((ln, i) => ctx.fillText(ln, cx, firstBaselineY + i * lineH));
+  ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  ctx.letterSpacing = '0px';
   ctx.restore();
 }
 
