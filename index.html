@@ -4490,6 +4490,33 @@ const SPORTS = {
   trackfield:    { name:'TRACK & FIELD',  emoji:'🏃', shapeSVG:'circle', textColor:'#ffffff', lightTicket:false, drawBg:drawTrackFieldBg,      fillLeft:fillTrackFieldLeft,      fillRight:fillTrackFieldRight },
 };
 
+// Cinematic vignette for sport posters: deep centre-to-edge darkening plus
+// two diagonal corner crushes. rect selects the fill region; corners
+// selects the two anchor points for the corner crushes. Both default to
+// the full canvas so the common non-clipped call is just:
+//   drawSportVignette(ctx, W, H)
+// The letter-format branch reuses this with the content-area rect and the
+// inset corners to keep the effect inside the printable border.
+function drawSportVignette(ctx, W, H, rect, corners) {
+  const [rx, ry, rw, rh] = rect    || [0, 0, W, H];
+  const [ax, ay, bx, by] = corners || [0, 0, W, H];
+  const maxWH = Math.max(W, H);
+
+  const ov = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.08, W/2, H/2, maxWH*0.78);
+  ov.addColorStop(0, 'rgba(0,0,0,0.0)');
+  ov.addColorStop(0.55, 'rgba(0,0,0,0.18)');
+  ov.addColorStop(1, 'rgba(0,0,0,0.58)');
+  ctx.fillStyle = ov; ctx.fillRect(rx, ry, rw, rh);
+
+  const cc = ctx.createRadialGradient(ax, ay, 0, ax, ay, maxWH*0.5);
+  cc.addColorStop(0, 'rgba(0,0,0,0.22)'); cc.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = cc; ctx.fillRect(rx, ry, rw, rh);
+
+  const cc2 = ctx.createRadialGradient(bx, by, 0, bx, by, maxWH*0.5);
+  cc2.addColorStop(0, 'rgba(0,0,0,0.22)'); cc2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = cc2; ctx.fillRect(rx, ry, rw, rh);
+}
+
 // ─── MAIN GENERATE ────────────────────────────────────────────────────────────
 function _runGeneratePoster() {
   if (currentMode==='sport')  generateSportPoster();
@@ -5256,19 +5283,7 @@ function generateSportPoster() {
 
     // 1. Background + vignette
     sport.drawBg(ctx,W,H);
-    // Deep vignette for cinematic feel
-    const ov=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.08,W/2,H/2,Math.max(W,H)*0.78);
-    ov.addColorStop(0,'rgba(0,0,0,0.0)');
-    ov.addColorStop(0.55,'rgba(0,0,0,0.18)');
-    ov.addColorStop(1,'rgba(0,0,0,0.58)');
-    ctx.fillStyle=ov; ctx.fillRect(0,0,W,H);
-    // Subtle corner crush
-    const cc=ctx.createRadialGradient(0,0,0,0,0,Math.max(W,H)*0.5);
-    cc.addColorStop(0,'rgba(0,0,0,0.22)'); cc.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=cc; ctx.fillRect(0,0,W,H);
-    const cc2=ctx.createRadialGradient(W,H,0,W,H,Math.max(W,H)*0.5);
-    cc2.addColorStop(0,'rgba(0,0,0,0.22)'); cc2.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=cc2; ctx.fillRect(0,0,W,H);
+    drawSportVignette(ctx, W, H);
 
     // 2. Ticket geometry — adaptive for portrait vs landscape
     const isPortrait = H >= W * 0.9;  // 1:1 treated as portrait for stacked layout
@@ -5291,15 +5306,9 @@ function generateSportPoster() {
         // Vignette clipped to content area
         ctx.save();
         ctx.beginPath(); ctx.rect(margin, margin, W - margin*2, H - margin*2); ctx.clip();
-        const ovL=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.08,W/2,H/2,Math.max(W,H)*0.78);
-        ovL.addColorStop(0,'rgba(0,0,0,0.0)'); ovL.addColorStop(0.55,'rgba(0,0,0,0.18)'); ovL.addColorStop(1,'rgba(0,0,0,0.58)');
-        ctx.fillStyle=ovL; ctx.fillRect(margin,margin,W-margin*2,H-margin*2);
-        const ccL=ctx.createRadialGradient(margin,margin,0,margin,margin,Math.max(W,H)*0.5);
-        ccL.addColorStop(0,'rgba(0,0,0,0.22)'); ccL.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=ccL; ctx.fillRect(margin,margin,W-margin*2,H-margin*2);
-        const ccL2=ctx.createRadialGradient(W-margin,H-margin,0,W-margin,H-margin,Math.max(W,H)*0.5);
-        ccL2.addColorStop(0,'rgba(0,0,0,0.22)'); ccL2.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=ccL2; ctx.fillRect(margin,margin,W-margin*2,H-margin*2);
+        drawSportVignette(ctx, W, H,
+          [margin, margin, W - margin*2, H - margin*2],
+          [margin, margin, W - margin,   H - margin]);
         ctx.restore();
       }
       tw = W - margin*2;
