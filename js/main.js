@@ -2388,6 +2388,11 @@ function drawSportBackdrop(ctx, x, y, w, h, sportKey, accentColor, darkestColor,
   // rendered on top stays comfortably legible.
   if (sportKey === 'golf') {
     _drawGolfDimples(ctx, shapeInfo);
+    // Rebuild the shape path — the dimple helper leaves a tiny highlight
+    // arc as the current path, and the border stroke below strokes the
+    // current path. Without this rebuild, the border would stroke the last
+    // dimple's highlight and produce a small dark circle inside the shape.
+    sportShapePath(ctx, x, y, w, h, sportKey, cy_override, maxR_override);
   }
   // Border — prefer a genuinely dark colour so the stroke reads as a proper
   // outline on the white shape at every ratio. Yellow/gold accents at 0.65
