@@ -2292,8 +2292,10 @@ function sportShapePath(ctx, x, y, w, h, sport, cy_override, maxR_override) {
       ctx.closePath();
       return {cx,cy,R:R*0.78};
     }
-    case 'afl': {
-      // Same oval as football
+    case 'afl':
+    case 'rugby': {
+      // Same oval as football — the rugby/AFL ball is an elongated prolate
+      // spheroid, so the shape reads correctly at every aspect ratio.
       ctx.beginPath();
       ctx.ellipse(cx,cy,R*1.35,R*0.78,0,0,Math.PI*2);
       ctx.closePath();
@@ -3094,16 +3096,22 @@ function fillVolleyball(ctx, x, y, w, h) {
   ctx.globalAlpha=0.15; ctx.strokeStyle='#3e2723'; ctx.lineWidth=0.8;
   for(let nx=x;nx<=x+w;nx+=w*0.065){ctx.beginPath();ctx.moveTo(nx,y+h*0.42);ctx.lineTo(nx,y+h*0.58);ctx.stroke();}
   ctx.restore();
-  // Ball
+  // Ball — anchor to shape centre so the ball sits entirely inside the white
+  // shape's clipped area and never pokes out into the text/icon bands on the
+  // upper ticket. Radius is also gently reduced so it sits comfortably within
+  // the smallest colored zones.
+  const _vbFo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
+  const _vbCx = x + w / 2;
+  const _vbCy = _vbFo?.shapeCy ?? (y + h * 0.38);
+  const _vbR  = Math.min(w, h) * 0.20;
   ctx.fillStyle='#fff8e1';
-  ctx.beginPath(); ctx.arc(x+w/2,y+h*0.38,Math.min(w,h)*0.22,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(_vbCx,_vbCy,_vbR,0,Math.PI*2); ctx.fill();
   ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.arc(x+w/2,y+h*0.38,Math.min(w,h)*0.22,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(_vbCx,_vbCy,_vbR,0,Math.PI*2); ctx.stroke();
   // Ball panel curves
   ctx.strokeStyle='rgba(100,80,20,0.35)'; ctx.lineWidth=1.2;
   [[0,1],[1,0],[0.7,0.7]].forEach(([dx,dy])=>{
-    const r=Math.min(w,h)*0.22;
-    ctx.beginPath(); ctx.moveTo(x+w/2-dx*r,y+h*0.38-dy*r); ctx.lineTo(x+w/2+dx*r,y+h*0.38+dy*r); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(_vbCx-dx*_vbR,_vbCy-dy*_vbR); ctx.lineTo(_vbCx+dx*_vbR,_vbCy+dy*_vbR); ctx.stroke();
   });
   const sheen=ctx.createRadialGradient(x+w*0.35,y+h*0.25,5,x+w*0.35,y+h*0.25,w*0.5);
   sheen.addColorStop(0,'rgba(255,255,255,0.45)'); sheen.addColorStop(1,'rgba(255,255,255,0)');
