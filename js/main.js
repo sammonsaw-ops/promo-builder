@@ -416,7 +416,12 @@ function addPackage() {
   const c = document.getElementById('packageContainer');
   const r = document.createElement('div');
   r.className = 'package-row';
-  r.innerHTML = `<input type="number" class="package-tickets" placeholder="${S.phTickets}" min="1"><span class="for-label">${S.forLabel}</span><input type="number" class="package-price" placeholder="0.00" min="0" step="1"><button type="button" class="remove-package" onclick="removePackage(this)">×</button>`;
+  r.innerHTML = `<input type="number" class="package-tickets" data-autopreview placeholder="${S.phTickets}" min="1"><span class="for-label">${S.forLabel}</span><input type="number" class="package-price" data-autopreview placeholder="0.00" min="0" step="1"><button type="button" class="remove-package" onclick="removePackage(this)">×</button>`;
+  // wireAutoPreview only runs once at load — attach the listener to the new
+  // package inputs so they debounce-schedule a re-render like the others.
+  r.querySelectorAll('[data-autopreview]').forEach(el => {
+    el.addEventListener('input', scheduleAutoPreview);
+  });
   c.appendChild(r);
 }
 function removePackage(btn) { btn.parentElement.remove(); }
