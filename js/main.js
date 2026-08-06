@@ -6150,3 +6150,23 @@ async function finaliseDownload(){
 
 
 
+
+
+// ── Window bridges for HTML inline handlers ────────────────────────────────
+// ES modules give each top-level declaration module scope, not global scope.
+// The markup still uses inline onclick/oninput/onchange attributes that
+// resolve names against window, so every function referenced from HTML has
+// to be re-exposed here. Keep this list in sync with attributes in index.html.
+Object.assign(window, {
+  // onclick=
+  addPackage, commitCustomRatio, copyToClipboard, generatePoster,
+  openInstructions, removePackage, removeQrUrl, removeUploadedFile,
+  resetBrandPalette, selectCustomRatio, selectRatio, selectSport,
+  setMode, toggleAdditional,
+  // oninput=
+  formatCommaNumber, setBrandSwatchColor, updateCustomPreview, updateQrPreview,
+  // onchange=
+  togglePrizeImage, updateFileLabel,
+  // referenced from other JS (used to be implicit globals)
+  scheduleAutoPreview,
+});
