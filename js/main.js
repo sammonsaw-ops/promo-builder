@@ -171,6 +171,11 @@ const UI_STRINGS = {
     toastCopyFail1:'Could not copy — try downloading instead.',
     toastCopyFail2:'Clipboard access denied. Use Download instead.',
     toastCopyFail3:'Could not copy — use Download instead.',
+    headerReturn:'← Click here to return to Sammons Creative',
+    restoreStripTitle:'Continuing an earlier banner?',
+    restoreStripSub:'Re-upload the PNG you downloaded to restore every field, logo, and prize image.',
+    restoreStripBtn:'Upload PNG',
+    downloadReuseHint:'💾 <strong>Editable file:</strong> this PNG stores your form data. Keep the original and re-upload it here later — e.g. to swap in your approved licence number — without re-entering anything. Re-saving through other image tools may strip the embedded data.',
   },
   fr: {
     step0Title:'Type de tirage', step1Title:'Type de bannière', step2Title:'Format de sortie', step3Title:'Détails du tirage',
@@ -227,6 +232,11 @@ const UI_STRINGS = {
     toastCopyFail1:'Impossible de copier — essayez de télécharger à la place.',
     toastCopyFail2:'Accès au presse-papiers refusé. Utilisez Télécharger.',
     toastCopyFail3:'Impossible de copier — utilisez Télécharger.',
+    headerReturn:'← Cliquez ici pour revenir à Sammons Creative',
+    restoreStripTitle:'Vous continuez une bannière précédente ?',
+    restoreStripSub:'Retéléversez le PNG téléchargé pour restaurer tous les champs, le logo et l\'image du prix.',
+    restoreStripBtn:'Téléverser un PNG',
+    downloadReuseHint:'💾 <strong>Fichier modifiable :</strong> ce PNG contient les données de votre formulaire. Conservez l\'original et retéléversez-le ici plus tard — par ex. pour insérer votre numéro de licence approuvé — sans tout ressaisir. Le réenregistrement par un autre outil d\'image peut supprimer les données intégrées.',
   }
 };
 
@@ -354,6 +364,13 @@ function applyUILanguage(lang) {
   const dl = document.getElementById('downloadLink');
   if (dl) dl.textContent = S.downloadBtn;
   _setText('instructionsLabel', S.instructionsBtn);
+
+  // Header return-to-site link + the new bilingual PNG-restore UI
+  _setText('headerReturnLink', S.headerReturn);
+  _setText('restoreStripTitle', S.restoreStripTitle);
+  _setText('restoreStripSub',   S.restoreStripSub);
+  _setText('restoreStripBtn',   S.restoreStripBtn);
+  _setHTML('downloadReuseHint', S.downloadReuseHint);
 }
 
 function _setText(id, text) { const el = document.getElementById(id); if (el && text !== undefined) el.textContent = text; }
