@@ -1254,9 +1254,14 @@ function getPaletteCached(img, n) {
 // Both honour window.brandPalette when the user has confirmed one.
 
 function deriveStandardColors(img) {
+  const FALLBACK_PALETTE = [[40,60,120],[80,100,160],[60,80,140],[100,120,180],[120,140,200],[50,70,130],[90,110,170],[70,90,150]];
   let palette;
   try { palette = getPaletteCached(img, 8); }
-  catch (_e) { palette = [[40,60,120],[80,100,160],[60,80,140],[100,120,180],[120,140,200],[50,70,130],[90,110,170],[70,90,150]]; }
+  catch (_e) { palette = null; }
+  // Guard against ColorThief returning null or fewer than 2 entries — the
+  // 1x1 transparent stand-in used in logoless mode leaves it empty, and
+  // downstream code indexes palette[0] and palette[1] unconditionally.
+  if (!palette || palette.length < 2) palette = FALLBACK_PALETTE;
 
   const getSat = (r,g,b) => { const mx=Math.max(r,g,b), mn=Math.min(r,g,b); return mx===0 ? 0 : (mx-mn)/mx; };
   const getBri = (r,g,b) => Math.max(r,g,b)/255;
