@@ -2383,6 +2383,12 @@ function drawSportBackdrop(ctx, x, y, w, h, sportKey, accentColor, darkestColor,
   // Solid fill (white by default, grey-card for white logos)
   const shapeInfo=sportShapePath(ctx,x,y,w,h,sportKey,cy_override,maxR_override);
   ctx.fillStyle=fill; ctx.fill();
+  // Golf: draw dimple pattern inside the shape so the white circle reads as
+  // an actual golf ball. Kept subtle enough that a logo or org-name text
+  // rendered on top stays comfortably legible.
+  if (sportKey === 'golf') {
+    _drawGolfDimples(ctx, shapeInfo);
+  }
   // Border — prefer a genuinely dark colour so the stroke reads as a proper
   // outline on the white shape at every ratio. Yellow/gold accents at 0.65
   // alpha previously produced a washed-out yellowy line; darkestColor from
@@ -2413,6 +2419,58 @@ function _pickShapeStroke(darkest, accent) {
     return `rgb(${Math.round(r*scale)},${Math.round(g*scale)},${Math.round(b*scale)})`;
   }
   return '#1a1a1a';
+}
+
+// Golf-ball dimple texture: hexagonal grid of soft indented circles clipped
+// to the shape. Each dimple gets a radial gradient (bright rim highlight →
+// dark centre) so it reads as an inset rather than a printed dot. Kept low
+// contrast so logos and text drawn on top stay legible at every ratio.
+function _drawGolfDimples(ctx, shapeInfo) {
+  const { cx, cy, R } = shapeInfo;
+  if (!R || R <= 0) return;
+  ctx.save();
+  // Clip to a circle just inside the shape's border so dimples never touch
+  // the outline. Using an arc here instead of sportShapePath because golf
+  // shapes are always circular.
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 0.96, 0, Math.PI * 2);
+  ctx.clip();
+
+  const dimpleR = R * 0.055;
+  const spacing = dimpleR * 2.35;
+  const rowH    = spacing * 0.866;                  // sin(60°) — hexagonal
+  const reach   = R * 0.94;
+  const rows    = Math.ceil(reach / rowH) + 1;
+  const cols    = Math.ceil(reach / spacing) + 1;
+
+  for (let ry = -rows; ry <= rows; ry++) {
+    const py = cy + ry * rowH;
+    const xShift = (Math.abs(ry) % 2 === 0) ? 0 : spacing / 2;
+    for (let rx = -cols; rx <= cols; rx++) {
+      const px = cx + rx * spacing + xShift;
+      // Only draw dimples whose centres sit inside the ball
+      const dx = px - cx, dy = py - cy;
+      if (dx * dx + dy * dy > reach * reach) continue;
+
+      // Radial gradient for a subtle indented look — light rim then a soft
+      // grey centre. The subtle asymmetric highlight comes from painting a
+      // small bright dot offset up-and-left after the gradient.
+      const grad = ctx.createRadialGradient(px, py, 0, px, py, dimpleR);
+      grad.addColorStop(0.00, 'rgba(200,200,205,0.35)');
+      grad.addColorStop(0.55, 'rgba(220,220,225,0.18)');
+      grad.addColorStop(1.00, 'rgba(255,255,255,0.00)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(px, py, dimpleR, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.beginPath();
+      ctx.arc(px - dimpleR * 0.30, py - dimpleR * 0.30, dimpleR * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
 }
 
 // Clip future drawing to the sport shape
