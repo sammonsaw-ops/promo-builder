@@ -5185,26 +5185,16 @@ function generateSportPoster() {
       ctx.save(); ctx.strokeStyle='rgba(160,145,120,0.4)'; ctx.lineWidth=1;
       scalloppedRect(ctx,tx,ty,tw,th,cr,side); ctx.stroke(); ctx.restore();
     }
-    // Set fill opts for sport-specific tile rendering (e.g. football lace
-    // suppression, and per-ticket shape-centre alignment for concentric
-    // decorations like the waterpolo splash rings or the soccer ball).
-    window._sportFillOpts = { isPortrait, ratio: currentRatio, shapeCy: lCy, shapeR: lMaxR, side: 'left' };
-    drawTicket(lx,ly,lSide,sport.fillLeft);
-    window._sportFillOpts = { isPortrait, ratio: currentRatio, shapeCy: rCy, shapeR: rMaxR, side: 'right' };
-    drawTicket(rx,ry,rSide,sport.fillRight);
-    window._sportFillOpts = null;
-    drawTearLine(ctx, lx, ly, tw, th, gap, isPortrait);
-
-    // 3. Sport shape backdrops — with vertically-centred content layout
-    //    For tall tickets (aspect > 1.4) the default cy=y+h/2 leaves a big empty area
-    //    below the shape. Instead we compute cy so that the block
-    //    [labelH + gap + diameter + gap + bandH] is centred in the ticket.
+    // 3. Sport shape geometry — computed BEFORE drawTicket so the tile fill
+    //    functions can align their concentric decorations (soccer ball,
+    //    waterpolo splash rings, fencing sword) with the shape via
+    //    window._sportFillOpts.shapeCy / shapeR.
     const lcx=lx+tw/2, rcx=rx+tw/2;
     const bandH = 50;
     const R_est = Math.min(tw,th)*0.40;  // estimated radius (used for layout only)
 
     // BAND_H must be declared BEFORE computeCentredCy because that function
-    // closes over it and is called immediately at lCy/rCy computation below.
+    // closes over it.
     const BAND_H = Math.round(Math.max(54, Math.min(th * 0.135, 84)));
     _ticketLayout.bandH = BAND_H;
 
@@ -5243,6 +5233,17 @@ function generateSportPoster() {
     const _rCyInfo = computeCentredCy(rx, ry, tw, th, rSide);
     const lCy = _lCyInfo.cy, lMaxR = _lCyInfo.maxR;
     const rCy = _rCyInfo.cy, rMaxR = _rCyInfo.maxR;
+
+    // Now draw the tickets. Fill functions receive shape geometry via
+    // window._sportFillOpts so their sport-specific decorations (soccer
+    // ball, waterpolo splash rings, fencing sword) can anchor to the same
+    // centre as the shape drawn on top later in the pipeline.
+    window._sportFillOpts = { isPortrait, ratio: currentRatio, shapeCy: lCy, shapeR: lMaxR, side: 'left' };
+    drawTicket(lx,ly,lSide,sport.fillLeft);
+    window._sportFillOpts = { isPortrait, ratio: currentRatio, shapeCy: rCy, shapeR: rMaxR, side: 'right' };
+    drawTicket(rx,ry,rSide,sport.fillRight);
+    window._sportFillOpts = null;
+    drawTearLine(ctx, lx, ly, tw, th, gap, isPortrait);
 
     // Pre-shape decorations (drawn behind the shape, visible around its edges)
     // NOTE: must be after lCy/rCy/lMaxR/rMaxR are declared above.
