@@ -2376,14 +2376,36 @@ function drawSportBackdrop(ctx, x, y, w, h, sportKey, accentColor, darkestColor,
   // Solid fill (white by default, grey-card for white logos)
   const shapeInfo=sportShapePath(ctx,x,y,w,h,sportKey,cy_override,maxR_override);
   ctx.fillStyle=fill; ctx.fill();
-  // Border
-  if(sportKey==='soccer' && darkestColor){
-    const [dr,dg,db]=darkestColor;
-    ctx.strokeStyle=`rgb(${dr},${dg},${db})`; ctx.lineWidth=3; ctx.stroke();
-  } else {
-    ctx.strokeStyle=`rgba(${r},${g},${b},0.65)`; ctx.lineWidth=2.5; ctx.stroke();
-  }
+  // Border — prefer a genuinely dark colour so the stroke reads as a proper
+  // outline on the white shape at every ratio. Yellow/gold accents at 0.65
+  // alpha previously produced a washed-out yellowy line; darkestColor from
+  // the palette is used as the default now, with a safe darkened-accent
+  // fallback when the palette lacks a truly dark colour.
+  ctx.strokeStyle = _pickShapeStroke(darkestColor, [r, g, b]);
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
   return shapeInfo;
+}
+
+// Pick a stroke colour that reads clearly on a white shape:
+//   1. Use darkestColor if it hits ≥ 4.5:1 contrast on white.
+//   2. Otherwise darken the accent until it does.
+//   3. Never let it go so dark it becomes indistinguishable black — target
+//      luminance ≤ 0.35 which is comfortably visible without looking harsh.
+function _pickShapeStroke(darkest, accent) {
+  const lin = v => { v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
+  const contrast = (r,g,b) => 1.05 / (0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b)+0.05);
+  if (Array.isArray(darkest)) {
+    const [dr,dg,db] = darkest;
+    if (contrast(dr,dg,db) >= 4.5) return `rgb(${dr},${dg},${db})`;
+  }
+  if (Array.isArray(accent)) {
+    let [r,g,b] = accent;
+    let scale = 1.0;
+    for (let i = 0; i < 20 && contrast(r*scale, g*scale, b*scale) < 4.5; i++) scale *= 0.82;
+    return `rgb(${Math.round(r*scale)},${Math.round(g*scale)},${Math.round(b*scale)})`;
+  }
+  return '#1a1a1a';
 }
 
 // Clip future drawing to the sport shape
@@ -2750,12 +2772,17 @@ function fillPuck(ctx, x, y, w, h) {
     ctx.beginPath(); ctx.moveTo(x,ly2); ctx.lineTo(x+w,ly2); ctx.stroke();
   }
   ctx.restore();
+  // Puck moulded rings — anchored to the sport shape's actual centre so the
+  // two concentric rings sit precisely behind the white shape at every ratio.
+  const _pkFo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
+  const _pkCx = x + w * 0.5;
+  const _pkCy = _pkFo?.shapeCy ?? (y + h * 0.5);
   // Outer moulded edge ring
   ctx.strokeStyle='rgba(110,110,110,0.70)'; ctx.lineWidth=10;
-  ctx.beginPath(); ctx.arc(x+w*0.5,y+h*0.5,Math.min(w,h)*0.43,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(_pkCx,_pkCy,Math.min(w,h)*0.43,0,Math.PI*2); ctx.stroke();
   // Inner ring — subtle second moulded circle
   ctx.strokeStyle='rgba(80,80,80,0.30)'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.arc(x+w*0.5,y+h*0.5,Math.min(w,h)*0.32,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(_pkCx,_pkCy,Math.min(w,h)*0.32,0,Math.PI*2); ctx.stroke();
   // Surface reflection / sheen
   const sheen=ctx.createRadialGradient(x+w*0.35,y+h*0.25,5,x+w*0.35,y+h*0.25,w*0.55);
   sheen.addColorStop(0,'rgba(255,255,255,0.20)'); sheen.addColorStop(1,'rgba(0,0,0,0)');
@@ -2947,12 +2974,19 @@ function fillBasketball(ctx, x, y, w, h) {
   const g=ctx.createLinearGradient(x,y,x+w,y+h);
   g.addColorStop(0,'#e65100'); g.addColorStop(0.5,'#f57c00'); g.addColorStop(1,'#e65100');
   ctx.fillStyle=g; ctx.fillRect(x,y,w,h);
+  // Court centre circle + centre-line midcourt stripe now share the shape's
+  // vertical centre so the "half-court" reads as one aligned composition
+  // behind the white shape at every aspect ratio. The vertical line stays
+  // at the ticket's horizontal centre (already aligned with the shape).
+  const _bbFo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
+  const _bbCx = x + w * 0.5;
+  const _bbCy = _bbFo?.shapeCy ?? (y + h * 0.5);
   ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.arc(x+w*0.5,y+h*0.5,Math.min(w,h)*0.42,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(_bbCx,_bbCy,Math.min(w,h)*0.42,0,Math.PI*2); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(x+w*0.5,y+h*0.05); ctx.lineTo(x+w*0.5,y+h*0.95); ctx.stroke();
-  ctx.beginPath(); ctx.arc(x-w*0.35,y+h*0.5,w*0.7,-0.5,0.5); ctx.stroke();
-  ctx.beginPath(); ctx.arc(x+w*1.35,y+h*0.5,w*0.7,Math.PI-0.5,Math.PI+0.5); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x+w*0.05,y+h*0.5); ctx.lineTo(x+w*0.95,y+h*0.5); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x-w*0.35,_bbCy,w*0.7,-0.5,0.5); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x+w*1.35,_bbCy,w*0.7,Math.PI-0.5,Math.PI+0.5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+w*0.05,_bbCy); ctx.lineTo(x+w*0.95,_bbCy); ctx.stroke();
   const sheen=ctx.createRadialGradient(x+w*0.3,y+h*0.25,5,x+w*0.3,y+h*0.25,w*0.55);
   sheen.addColorStop(0,'rgba(255,220,180,0.3)'); sheen.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=sheen; ctx.fillRect(x,y,w,h);
@@ -3094,8 +3128,12 @@ function fillRingette(ctx, x, y, w, h) {
   ctx.beginPath(); ctx.arc(x+w/2,y+h*0.12,Math.min(w,h)*0.10,0,Math.PI*2); ctx.stroke();
   ctx.beginPath(); ctx.arc(x+w/2,y+h*0.88,Math.min(w,h)*0.10,0,Math.PI*2); ctx.stroke();
   ctx.restore();
-  // Blue ringette ring — donut
-  const cx=x+w*0.5, cy=y+h*0.5;
+  // Blue ringette ring — donut. Anchor to the sport shape's centre so the
+  // ring sits precisely behind the white shape (independent of the rink
+  // markings above, which stay at their rink positions).
+  const _rgFo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
+  const cx = x + w * 0.5;
+  const cy = _rgFo?.shapeCy ?? (y + h * 0.5);
   const oR=Math.min(w,h)*0.38, iR=Math.min(w,h)*0.21;
   ctx.fillStyle='#3a78c9';
   ctx.beginPath(); ctx.arc(cx,cy,oR,0,Math.PI*2); ctx.fill();
