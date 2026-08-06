@@ -903,6 +903,8 @@ function getRaffleStrings(raffleType) {
       drawOn:     'le',
       locale:     'fr-CA',
       scanQR:     'Scannez pour acheter',
+      orgFallback:  'Votre organisme',
+      teamFallback: 'Votre équipe',
     };
   }
   if (isEs) {
@@ -922,6 +924,8 @@ function getRaffleStrings(raffleType) {
       drawOn:     'el',
       locale:     'es-US',
       scanQR:     'Escanee para comprar',
+      orgFallback:  'Su organización',
+      teamFallback: 'Su equipo',
     };
   }
   return {
@@ -940,6 +944,8 @@ function getRaffleStrings(raffleType) {
     drawOn:     'on',
     locale:     'en-US',
     scanQR:     'Scan to buy tickets',
+    orgFallback:  'Your Organization',
+    teamFallback: 'Your Team',
   };
 }
 
@@ -4831,8 +4837,8 @@ function generateStandardPoster() {
   // pixelation. Full-resolution photos and PNGs are unaffected.
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  const orgName = state.orgName || 'Your Organization';
   const raffleType = state.raffleType;
+  const orgName = state.orgName || getRaffleStrings(raffleType).orgFallback;
   const showDetails = state.showDetails;
   const file = state.logoFile;
   // No logo? Fall through — the render pipeline uses a transparent stand-in
@@ -5589,8 +5595,8 @@ function generateSportPoster() {
   // this render — see generateStandardPoster for rationale.
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  const orgName = state.orgName || 'Your Team';
   const raffleType = state.raffleType;
+  const orgName = state.orgName || getRaffleStrings(raffleType).teamFallback;
   const showDetails = state.showDetails;
   const file = state.logoFile;
   // No logo? Same story as generateStandardPoster: use a transparent
