@@ -2,7 +2,8 @@
 // (rather than reading a global) so this module has no cross-module
 // dependencies — main.js passes currentLang through when calling.
 export function openInstructions(lang) {
-  renderInstructionsDoc(lang === 'fr' ? 'fr' : 'en');
+  const l = (lang === 'fr' || lang === 'es') ? lang : 'en';
+  renderInstructionsDoc(l);
 }
 
 // Shared CSS for both language variants of the instructions popup.
@@ -174,6 +175,64 @@ const INSTRUCTIONS_STRINGS = {
       <br><br>En haut du panneau de gauche, utilisez <strong>Vous continuez une bannière précédente ? — Téléverser un PNG</strong> et sélectionnez le PNG que vous aviez téléchargé. Chaque champ, image, couleur et bouton sera restauré exactement comme auparavant. Faites vos modifications et régénérez.
       <br><br><strong>Important :</strong> les données intégrées ne survivent que si le fichier PNG est transmis tel quel (courriel, stockage infonuagique, transfert de fichiers). Si quelqu'un ouvre le fichier dans Photoshop, Aperçu, Paint ou sur une plateforme de médias sociaux et le réenregistre ou le réexporte, les données sont supprimées. Conservez toujours le fichier <em>original</em> téléchargé si vous prévoyez le modifier plus tard.`,
     disclaimer: `<strong>Avis de non-responsabilité :</strong> Cet outil est fourni gratuitement par Sammons Creative. L'utilisateur final est seul responsable de vérifier l'exactitude, les erreurs, l'orthographe, les dates et la conformité légale (y compris les exigences relatives aux licences de tirage) de tout le contenu de la bannière avant impression ou publication. Sammons Creative n'assume aucune responsabilité pour les erreurs ou omissions dans le résultat généré. Aucune information ni image saisie dans cet outil n'est stockée, enregistrée ou transmise à un serveur.`,
+  },
+  es: {
+    htmlLang: 'es',
+    title: 'Promo Builder — Guía de uso',
+    h1: 'Promo Builder',
+    subtitle: `Guía de uso &nbsp;·&nbsp; por Sammons Creative`,
+    intro: `El <strong>Promo Builder</strong> le permite crear en segundos banderas promocionales profesionales de rifa —digitales y listas para imprimir— sin experiencia en diseño. Siga los tres pasos del panel izquierdo, luego genere y descargue su bandera. <strong>Nada de lo que ingresa se almacena ni se sube a un servidor</strong> — todo el procesamiento ocurre en su navegador.`,
+    step1Label: 'Tipo de bandera',
+    step1Body: `
+      <p>Elija el estilo de bandera que desea crear:</p>
+      <p><strong>Estándar <span class="tag">🎟️</span></strong> — Un diseño limpio y versátil, adecuado para cualquier rifa o recaudación de fondos.</p>
+      <p><strong>Deporte <span class="tag">🏆</span></strong> — Añade un elemento gráfico temático (puck, balón, etc.) al centro de la bandera. Después de seleccionar Deporte, elija su disciplina en la cuadrícula de íconos que aparece a continuación.</p>
+      <p style="margin-top:6px;font-size:7.5pt;color:var(--gray-400);">Deportes disponibles: Hockey, Fútbol, Fútbol americano, Béisbol, Sóftbol, Baloncesto, Waterpolo, Voleibol, Ringette, Curling, Gimnasia, Golf, Patinaje artístico, Lacrosse, Rugby, Tenis, Natación, AFL y Lucha/AMM.</p>`,
+    step2Label: 'Formato de salida',
+    step2Body: `
+      <p>Seleccione la <strong>proporción</strong> que corresponda al lugar donde usará la bandera:</p>
+      <table class="field-table">
+        <thead><tr><th>Proporción</th><th>Ideal para</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">4:5</td><td>Publicaciones verticales en Instagram</td></tr>
+          <tr><td class="field-name">1:1</td><td>Publicaciones cuadradas en redes</td></tr>
+          <tr><td class="field-name">1.91:1</td><td>Banners de Facebook y Twitter</td></tr>
+          <tr><td class="field-name">16:9</td><td>Pantalla ancha / diapositivas</td></tr>
+          <tr><td class="field-name">9:16</td><td>Stories de Instagram/Facebook, TikTok</td></tr>
+          <tr><td class="field-name">Letter <span class="tag gold">Imprimir</span></td><td>Cartel para imprimir — 8.5 × 11 pulgadas a 300 DPI. Se genera con un margen blanco de 1/2 pulgada para imprimir con seguridad en cualquier impresora. Con Código QR seleccionado, aparecen dos códigos QR — uno en cada esquina inferior para verlos fácilmente al colgar el cartel.</td></tr>
+        </tbody>
+      </table>`,
+    step3Label: 'Detalles de la rifa',
+    step3Body: `
+      <p style="margin-bottom:8px;">Llene los campos a continuación para construir el contenido de su bandera. Todos los campos son opcionales — solo aparecerá lo que usted ingrese.</p>
+      <table class="field-table">
+        <thead><tr><th style="width:30%">Campo</th><th>Qué ingresar</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">Nombre de la organización</td><td>El nombre de su equipo, club o grupo (ej.: <em>Asociación de Hockey Northside</em>). Aparece de forma destacada en la bandera.</td></tr>
+          <tr><td class="field-name">Tipo de rifa</td><td><span class="tag green">Rifa 50/50</span> — El ganador recibe el 50 % de las ventas de boletos hasta un premio máximo. &nbsp; <span class="tag gold">Rifa con Premio</span> — Se otorga un artículo o premio en efectivo fijo. &nbsp; Los tipos en francés (<em>Tirage</em>) cambian toda la interfaz al francés; los tipos en español (<em>Rifa</em>) la cambian al español.</td></tr>
+          <tr><td class="field-name">Logo del equipo / club</td><td>Suba un logo en PNG, JPG o GIF. Se colocará en la bandera. Para mejores resultados, use un archivo de alta resolución con fondo <strong>transparente</strong> o blanco. <span style="color:#b45309;font-weight:600;">⚠️ No use imágenes con un patrón de damero integrado</span> (vea Consejos de imagen abajo).</td></tr>
+          <tr><td class="field-name">Imagen del premio <span class="tag" style="font-size:6.5pt">Solo Rifa con Premio</span></td><td>Foto opcional del premio. Aparece solo cuando se selecciona <em>Rifa con Premio</em>. Para mejores resultados, use un PNG con fondo transparente o blanco.</td></tr>
+          <tr><td class="field-name">URL de compra de boletos</td><td>Pegue un enlace a su página en línea de venta de boletos. La herramienta generará automáticamente un <strong>código QR</strong> y lo colocará en la esquina de la bandera.</td></tr>
+          <tr><td class="field-name">Incluir información detallada <span class="tag" style="font-size:6.5pt">Interruptor</span></td><td>Haga clic en el interruptor para revelar campos adicionales: Paquetes de boletos, Total de boletos disponibles, Ventas máximas posibles, Descripción del premio, Número de licencia, Fecha del sorteo, Hora del sorteo y Lugar del sorteo. Ingrese solo los detalles que quiera mostrar. <strong>Nota:</strong> Al activar este interruptor, la información detallada se muestra dentro de la forma de la bandera y reemplaza cualquier otro contenido en esa zona — incluida una imagen del premio.</td></tr>
+          <tr><td class="field-name">Paquetes de boletos</td><td>Ingrese uno o más niveles de precio (ej.: <em>3 boletos por $10</em>). Haga clic en <strong>+ Añadir paquete</strong> para agregar más filas.</td></tr>
+          <tr><td class="field-name">Fecha y hora del sorteo</td><td>Seleccione la fecha y la hora del sorteo. Ambos campos son opcionales — omita cualquiera si aún no está confirmado.</td></tr>
+          <tr><td class="field-name">Lugar del sorteo</td><td>Dirección completa de dónde se realizará el sorteo (ej.: <em>123 Arena Way, Cityville, AB T2P 1A1</em>).</td></tr>
+        </tbody>
+      </table>`,
+    tipImgH4: 'Consejos de imagen',
+    tipImgP: 'Use logos de alta resolución (al menos 500 × 500 px). Los archivos PNG con fondo transparente producen los resultados más limpios en la bandera.',
+    tipCheckerH4: 'Evite fondos con damero "integrado"',
+    tipCheckerP1: `Algunas imágenes tienen un <strong>patrón de damero gris y blanco</strong> incrustado directamente en los píxeles. Este patrón lo usan los editores de imagen (Photoshop, GIMP, etc.) para <em>representar</em> la transparencia — pero si la imagen se guardó incorrectamente (por ej. como JPG, o como PNG sin canal alfa), el damero se vuelve permanente y <strong>no se puede eliminar</strong> con esta herramienta.`,
+    tipCheckerBadLabel: '&#10060; MALO — Damero integrado',
+    tipCheckerGoodLabel: '&#9989; BUENO — Transparencia real (PNG)',
+    tipCheckerP2: `<strong>Cómo corregirlo:</strong> Abra el archivo original en un editor de imagen, asegúrese de que el fondo sea verdaderamente transparente (debe ver el damero en el editor pero <em>no</em> debe formar parte del archivo guardado), luego expórtelo como <strong>PNG con transparencia</strong> activada. Vuelva a subir el archivo corregido.`,
+    dlH3: 'Generar y descargar su bandera',
+    dlP: `Cuando esté satisfecho con la vista previa, haga clic en el botón azul <strong>Generar bandera</strong> al pie del panel izquierdo. La bandera se generará en resolución completa en el panel derecho. Haga clic en <strong>Descargar PNG</strong> para guardar la imagen en su dispositivo. El archivo se nombra automáticamente con el nombre de su organización, el deporte (si se seleccionó) y la proporción. Su PNG descargado también es <strong>reeditable</strong> — vea <em>Editar una bandera después</em> a continuación.`,
+    reuseH4: 'Editar una bandera después — Vuelva a subir su PNG',
+    reuseP: `Cada bandera que descarga de esta herramienta incluye una copia invisible de los datos del formulario usados para construirla — cada campo, su logo subido y la imagen del premio (si aplica). Si necesita cambiar algo después (por ejemplo, reemplazar <em>#:Pendiente</em> por su número de licencia aprobado, corregir un error tipográfico o actualizar la fecha del sorteo), no necesita volver a ingresar nada.
+      <br><br>En la parte superior del panel izquierdo, use <strong>¿Continuando una bandera anterior? — Subir PNG</strong> y seleccione el PNG que descargó originalmente. Cada campo, imagen, color e interruptor se restaura exactamente como estaba. Haga sus cambios y vuelva a generar.
+      <br><br><strong>Importante:</strong> los datos integrados solo sobreviven si el archivo PNG se transmite tal cual (correo, almacenamiento en la nube, transferencia de archivos). Si alguien abre el archivo en Photoshop, Preview, Paint o una plataforma de redes sociales y lo vuelve a guardar o exportar, los datos se eliminan. Conserve siempre el archivo <em>original</em> descargado si podría necesitar editarlo después.`,
+    disclaimer: `<strong>Aviso legal:</strong> Esta es una herramienta gratuita proporcionada por Sammons Creative sin costo. El usuario final es el único responsable de revisar todo el contenido de la bandera para verificar exactitud, errores, ortografía, fechas y cumplimiento legal (incluidos los requisitos de licencia de rifa) antes de imprimir o publicar. Sammons Creative no asume responsabilidad por errores u omisiones en el resultado generado. Ninguna información o imagen ingresada en esta herramienta se almacena, guarda ni se transmite a ningún servidor.`,
   },
 };
 

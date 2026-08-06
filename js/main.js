@@ -110,7 +110,7 @@ let currentSport = 'hockey';
 let currentRatio = '16:9';
 let preloadedPrizeImg = null;
 let _ticketLayout = null;   // set after each banner render; used by finaliseDownload
-let currentLang = 'en';    // 'en' or 'fr' — driven by raffle type selection
+let currentLang = 'en';    // 'en', 'fr' or 'es' — driven by raffle type selection
 
 // ═══════════════════════════════════════════════════════════════════════
 // UI STRING TRANSLATIONS
@@ -237,6 +237,67 @@ const UI_STRINGS = {
     restoreStripSub:'Retéléversez le PNG téléchargé pour restaurer tous les champs, le logo et l\'image du prix.',
     restoreStripBtn:'Téléverser un PNG',
     downloadReuseHint:'💾 <strong>Fichier modifiable :</strong> ce PNG contient les données de votre formulaire. Conservez l\'original et retéléversez-le ici plus tard — par ex. pour insérer votre numéro de licence approuvé — sans tout ressaisir. Le réenregistrement par un autre outil d\'image peut supprimer les données intégrées.',
+  },
+  es: {
+    step0Title:'Tipo de rifa', step1Title:'Tipo de bandera', step2Title:'Formato de salida', step3Title:'Detalles de la rifa',
+    modeStandard:' Estándar', modeSport:' Deporte',
+    sportSelectorLabel:'Elegir un deporte',
+    sports:{ hockey:'Hockey', soccer:'Fútbol', football:'Fútbol americano', baseball:'Béisbol', softball:'Sóftbol', basketball:'Baloncesto', waterpolo:'Waterpolo', volleyball:'Voleibol', ringette:'Ringette', curling:'Curling', gymnastics:'Gimnasia', golf:'Golf', figureskating:'Patinaje artístico', lacrosse:'Lacrosse', rugby:'Rugby', tennis:'Tenis', swimming:'Natación', afl:'AFL', wrestling:'Lucha / AMM', equestrian:'Ecuestre', ultimatefrisbee:'Ultimate', fencing:'Esgrima', dance:'Baile', boxing:'Boxeo', trackfield:'Atletismo' },
+    ratioDims:{ '16:9':'Banner / Portada FB', '1:1':'Cuadrado Instagram', '4:5':'Retrato IG', '9:16':'Story / Reel', '1.91:1':'Anuncio FB / LinkedIn', 'letter':'Cartel impreso', 'custom':'Cualquier tamaño' },
+    crpLabel:'Tamaño personalizado (píxeles)', crpW:'Ancho', crpH:'Alto',
+    crpApply:'✓ Aplicar tamaño', crpApplied:(w,h)=>`✓ Aplicado — ${w} × ${h}`,
+    privacyNotice:'<strong>Su privacidad está protegida.</strong> Ninguna imagen, logo o información ingresada en esta herramienta se almacena, guarda ni se transmite. Todos los datos existen solo en su sesión del navegador y nunca se envían a un servidor.',
+    labelOrgName:'Nombre de la organización', phOrgName:'ej.: Hockey Northside',
+    labelRaffleType:'Tipo de rifa',
+    labelLogoUpload:'Logo del equipo / club',
+    logoUploadDefault:'Haga clic aquí para subir un logo o imagen…',
+    logoUploadNew:'Haga clic aquí para subir un nuevo archivo',
+    removeLogoBtn:'✕ Quitar logo',
+    bpTitle:'Paleta de marca extraída — haga clic en un color para editarlo', bpReset:'↺ Volver a extraer',
+    bpDark:'Oscuro', bpPrimary:'Primario', bpAccent:'Acento', bpMid:'Medio', bpLight:'Claro', bpLogoBg:'Fondo logo',
+    bpNote:'Estos colores se aplicarán a los elementos generados. Los cambios tienen mayor efecto en las Banderas Estándar; las Banderas Deportivas usan un tema específico del deporte con acentos de su paleta.',
+    labelPrizeImage:'Imagen del premio', labelPrizeImageHint:'(opcional, Rifa con Premio)',
+    prizeUploadDefault:'Haga clic aquí para subir la imagen del premio…',
+    prizeUploadNew:'Haga clic aquí para subir un nuevo archivo',
+    removePrizeBtn:'✕ Quitar imagen',
+    prizeImageNote:'⚠️ No se puede subir la imagen del premio mientras <strong>Incluir información detallada</strong> esté activado. Desactive el interruptor para subir una imagen del premio.',
+    labelQrUrl:'URL de compra de boletos', labelQrUrlHint:'(añade un código QR a la bandera)',
+    qrHint:'El código QR aparecerá en la esquina de la bandera.<br>Deje en blanco para omitir.',
+    removeQrBtn:'✕ Quitar',
+    toggleLabel:'Incluir información detallada', toggleSublabel:'Fechas, boletos, montos del premio, lugar del sorteo',
+    jurisdictionNote:'<strong>Déjelo desactivado en la mayoría de los casos.</strong> La información detallada solo es requerida en las banderas de rifa en ciertas jurisdicciones. En caso de duda, mantenga este interruptor desactivado.',
+    detailsNote:'💡 <strong>Consejo:</strong> Después de llenar los detalles a continuación, haga clic en <strong>Generar bandera</strong> si la vista previa no se actualiza automáticamente.',
+    detailsRatioNote:'ℹ️ <strong>Consejo:</strong> Todos los campos de detalle aparecerán en su bandera. El texto se ajusta automáticamente — los formatos más anchos mostrarán texto más grande y legible.',
+    labelTicketPackages:'Paquetes de boletos', phTickets:'# boletos', forLabel:'por $',
+    addPackageBtn:'+ Añadir paquete', labelTotalTickets:'Total de boletos', phTotalTickets:'ej.: 1,000',
+    labelMaxSales:'Ventas máximas posibles', labelPrizeDesc:'Descripción del premio',
+    phPrizeDesc:'ej.: Camioneta Ford F-150 2025', labelPrizeValue:'Valor del premio',
+    labelLicence:'Número de licencia', phLicence:'ej.: #:Pendiente',
+    labelDrawDate:'Fecha del sorteo', labelDrawTime:'Hora del sorteo',
+    labelDrawLocation:'Lugar del sorteo', labelDrawLocationHint:'(dirección completa)',
+    phDrawLocation:'123 Main St, Ciudad, Provincia A1B 2C3',
+    generateBtn:'Generar bandera',
+    autoTip:'💡 <strong style="color:var(--gray-500);">Consejo:</strong> La vista previa se actualiza automáticamente mientras hace cambios. Si no se refresca, haga clic en el botón <strong>Generar bandera</strong> arriba.',
+    disclaimer:'<strong style="color:var(--gray-500);">Aviso legal:</strong> Esta es una herramienta gratuita proporcionada por Sammons Creative sin costo. El usuario final es el único responsable de revisar el contenido de la bandera para verificar exactitud, errores y cumplimiento antes de usarla. Sammons Creative no asume responsabilidad por errores, omisiones o inexactitudes en el resultado generado. Úsela a su discreción.',
+    previewLabel:'Vista previa', statusReady:'Listo para generar', statusGenerating:'Generando…', statusError:'Error — vea la consola',
+    statusBannerReady:(label,kb)=>`Bandera lista · ${label} · ${kb} KB`,
+    statusBannerReadyNoKb:(label)=>`Bandera lista · ${label}`,
+    placeholderTitle:'Su bandera aparecerá aquí',
+    placeholderSub:'Llene sus datos a la izquierda, luego haga clic en Generar bandera para crear una promo de rifa lista para imprimir.',
+    fileInfo:' · PNG · Lista para descargar',
+    copyBtn:'📋 Copiar', copiedBtn:'✓ ¡Copiada!', downloadBtn:'⬇ Descargar PNG',
+    instructionsBtn:'Guía de uso',
+    alertNoLogo:'Primero suba el logo o imagen de un equipo.', alertNoLogoShort:'Suba un logo/imagen',
+    alertError:'Ocurrió un error. Verifique todos los campos requeridos.',
+    toastCopied:'✓ Bandera copiada al portapapeles',
+    toastCopyFail1:'No se pudo copiar — intente descargar en su lugar.',
+    toastCopyFail2:'Acceso al portapapeles denegado. Use Descargar.',
+    toastCopyFail3:'No se pudo copiar — use Descargar.',
+    headerReturn:'← Haga clic aquí para volver a Sammons Creative',
+    restoreStripTitle:'¿Continuando una bandera anterior?',
+    restoreStripSub:'Vuelva a subir el PNG que descargó para restaurar todos los campos, el logo y la imagen del premio.',
+    restoreStripBtn:'Subir PNG',
+    downloadReuseHint:'💾 <strong>Archivo editable:</strong> este PNG contiene los datos de su formulario. Conserve el original y súbalo aquí más adelante — por ej. para intercambiar su número de licencia aprobado — sin volver a escribir nada. Volver a guardarlo con otros programas de imagen puede eliminar los datos integrados.',
   }
 };
 
@@ -255,9 +316,11 @@ function applyUILanguage(lang) {
   const langNoticeEl = document.getElementById('langNotice');
   if (langNoticeEl) {
     if (lang === 'fr') {
-      langNoticeEl.innerHTML = '<strong>La langue est choisie ici.</strong> Sélectionner un type de tirage français (<em>Tirage moitié-moitié</em> ou <em>Tirage de Prix</em>) bascule l\'interface et la bannière en français.';
+      langNoticeEl.innerHTML = '<strong>La langue est choisie ici.</strong> Sélectionner un type de tirage français (<em>Tirage moitié-moitié</em> ou <em>Tirage de Prix</em>) bascule l\'interface et la bannière en français. Sélectionner un type espagnol (<em>Rifa 50/50</em> ou <em>Rifa con Premio</em>) bascule le tout en espagnol.';
+    } else if (lang === 'es') {
+      langNoticeEl.innerHTML = '<strong>El idioma se selecciona aquí.</strong> Elegir un tipo de rifa en español (<em>Rifa 50/50</em> o <em>Rifa con Premio</em>) cambiará toda la interfaz y la bandera generada al español. Elegir un tipo en francés (<em>Tirage moitié-moitié</em> o <em>Tirage de Prix</em>) las cambiará al francés.';
     } else {
-      langNoticeEl.innerHTML = '<strong>Language is set here.</strong> Selecting a French raffle type (<em>Tirage moitié-moitié</em> or <em>Tirage de Prix</em>) will switch the entire interface and banner output to French.';
+      langNoticeEl.innerHTML = '<strong>Language is set here.</strong> Selecting a French raffle type (<em>Tirage moitié-moitié</em> or <em>Tirage de Prix</em>) will switch the entire interface and banner output to French. Selecting a Spanish raffle type (<em>Rifa 50/50</em> or <em>Rifa con Premio</em>) will switch it to Spanish.';
     }
   }
 
@@ -356,7 +419,7 @@ function applyUILanguage(lang) {
   // Right panel
   _setText('previewToolbarLabel', S.previewLabel);
   const st = document.getElementById('statusText');
-  if (st && (st.textContent === UI_STRINGS.en.statusReady || st.textContent === UI_STRINGS.fr.statusReady)) st.textContent = S.statusReady;
+  if (st && (st.textContent === UI_STRINGS.en.statusReady || st.textContent === UI_STRINGS.fr.statusReady || st.textContent === UI_STRINGS.es.statusReady)) st.textContent = S.statusReady;
   _setText('placeholderTitle', S.placeholderTitle);
   _setText('placeholderSub', S.placeholderSub);
   _setText('fileInfoText', S.fileInfo);
@@ -381,7 +444,7 @@ function _updateUploadSpan(labelId, text) {
   if (!lbl) return;
   const span = lbl.querySelector('span:last-child');
   // Only replace if it still shows the default upload prompt (not a filename)
-  if (span && (span.textContent.startsWith('Click Here') || span.textContent.startsWith('Cliquez ici'))) span.textContent = text;
+  if (span && (span.textContent.startsWith('Click Here') || span.textContent.startsWith('Cliquez ici') || span.textContent.startsWith('Haga clic'))) span.textContent = text;
 }
 const _scLogoImg = new Image();
 _scLogoImg.src = 'data:image/jpeg;base64,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K6402DO1wYGuMjg88dIHJ6RwCCvZ2jyEu3nia1zJryF2Cx2po2S4S/dYIa4ha7mKt1n0Mc2NwZ0cjgxcfTnVaIM67PYN1LxFbo7lV5W0NCW6zGstTcR17k3TG+aw1x4Do2ObN6/Y+Ye57qrfDZaxFXwd7p4bKSVYMk+PITtrWQGyPa+nFHA5od3dzNw1vH9ZAHcjnbiIMRmxh7H4dX8EdLUfnKtsNFIkfmY53ZJ0gHR+rqMHW72/QHH2BWo9gMjWyOyujnwXI7UkGEp17RbJ1OjnZAwSMf8AIeDzyD3U5RAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERB//9k=';
@@ -517,7 +580,9 @@ function removePackage(btn) {
 
 function togglePrizeImage() {
   const t = document.getElementById('raffleType').value;
-  const newLang = (t === 'tirage' || t === 'tirage5050') ? 'fr' : 'en';
+  const newLang = (t === 'tirage' || t === 'tirage5050') ? 'fr'
+                : (t === 'esrifa' || t === 'es5050')     ? 'es'
+                : 'en';
   if (newLang !== currentLang) applyUILanguage(newLang);
   const pig = document.getElementById('prizeImageGroup');
   const piu = document.getElementById('prizeImageUpload');
@@ -526,7 +591,7 @@ function togglePrizeImage() {
   const pin = document.getElementById('prizeImageNote');
   const ts = document.getElementById('toggleSwitch');
   const detailsOn = ts.classList.contains('active');
-  if (t==='prize' || t==='tirage') {
+  if (t==='prize' || t==='tirage' || t==='esrifa') {
     pig.style.display='block';
     if (detailsOn) {
       piu.disabled=true;
@@ -567,7 +632,7 @@ function toggleAdditional() {
   if (detNote) detNote.style.display = ts.classList.contains('active') ? 'block' : 'none';
   const detRatioNote = document.getElementById('detailsRatioNote');
   if (detRatioNote) detRatioNote.style.display = ts.classList.contains('active') ? 'block' : 'none';
-  if (t==='prize' || t==='tirage') {
+  if (t==='prize' || t==='tirage' || t==='esrifa') {
     if (ts.classList.contains('active')) {
       piu.disabled=true;
       pds.style.display='block';
@@ -816,28 +881,12 @@ function _currentAspectString() {
 // Returns all canvas-rendered strings keyed to the raffleType value.
 // English types: '5050', 'prize'
 // French types:  'tirage5050', 'tirage'
+// Spanish types: 'es5050',    'esrifa'
 // ═══════════════════════════════════════════════════════════════════════
 function getRaffleStrings(raffleType) {
-  const isFr = raffleType === 'tirage' || raffleType === 'tirage5050';
-  if (!isFr) {
-    return {
-      mainTxt:    raffleType === '5050' ? '50/50' : 'PRIZE',
-      subTxt:     'RAFFLE',
-      bandLabel:  raffleType === '5050' ? '50/50 RAFFLE' : 'PRIZE RAFFLE',
-      thankYou:   'THANK YOU FOR YOUR SUPPORT',
-      pkgTitle:   'Ticket Packages',
-      ticketSg:   'ticket',
-      ticketPl:   'tickets',
-      totalTkts:  tt  => `${tt} total tickets available`,
-      prize5050:  amt => `Prize: ${amt} (50% of sales)`,
-      maxSales:   amt => `Max prize at ${amt} sold`,
-      winnerGets: (pd, pv) => pv ? `Winner will receive ${pd} valued at ${pv}` : pd,
-      drawLabel:  'Draw:',
-      drawOn:     'on',
-      locale:     'en-US',
-      scanQR:     'Scan to buy tickets',
-    };
-  } else {
+  const isFr = raffleType === 'tirage'  || raffleType === 'tirage5050';
+  const isEs = raffleType === 'esrifa'  || raffleType === 'es5050';
+  if (isFr) {
     return {
       mainTxt:    raffleType === 'tirage5050' ? 'MOITIÉ-MOITIÉ' : 'TIRAGE',
       subTxt:     raffleType === 'tirage5050' ? 'TIRAGE' : 'DE PRIX',
@@ -856,6 +905,42 @@ function getRaffleStrings(raffleType) {
       scanQR:     'Scannez pour acheter',
     };
   }
+  if (isEs) {
+    return {
+      mainTxt:    raffleType === 'es5050' ? '50/50' : 'RIFA',
+      subTxt:     raffleType === 'es5050' ? 'RIFA'  : 'CON PREMIO',
+      bandLabel:  raffleType === 'es5050' ? 'RIFA 50/50' : 'RIFA CON PREMIO',
+      thankYou:   '¡GRACIAS POR SU APOYO!',
+      pkgTitle:   'Paquetes de boletos',
+      ticketSg:   'boleto',
+      ticketPl:   'boletos',
+      totalTkts:  tt  => `${tt} boletos disponibles en total`,
+      prize5050:  amt => `Premio: ${amt} (50 % de las ventas)`,
+      maxSales:   amt => `Premio máx. con ${amt} vendidos`,
+      winnerGets: (pd, pv) => pv ? `El ganador recibirá ${pd} con un valor de ${pv}` : pd,
+      drawLabel:  'Sorteo:',
+      drawOn:     'el',
+      locale:     'es-US',
+      scanQR:     'Escanee para comprar',
+    };
+  }
+  return {
+    mainTxt:    raffleType === '5050' ? '50/50' : 'PRIZE',
+    subTxt:     'RAFFLE',
+    bandLabel:  raffleType === '5050' ? '50/50 RAFFLE' : 'PRIZE RAFFLE',
+    thankYou:   'THANK YOU FOR YOUR SUPPORT',
+    pkgTitle:   'Ticket Packages',
+    ticketSg:   'ticket',
+    ticketPl:   'tickets',
+    totalTkts:  tt  => `${tt} total tickets available`,
+    prize5050:  amt => `Prize: ${amt} (50% of sales)`,
+    maxSales:   amt => `Max prize at ${amt} sold`,
+    winnerGets: (pd, pv) => pv ? `Winner will receive ${pd} valued at ${pv}` : pd,
+    drawLabel:  'Draw:',
+    drawOn:     'on',
+    locale:     'en-US',
+    scanQR:     'Scan to buy tickets',
+  };
 }
 
 // ─── fitMainFontSz ────────────────────────────────────────────────────────────
@@ -1580,21 +1665,27 @@ async function restoreFromPng(input) {
 }
 
 function _restoreMessages() {
-  return currentLang === 'fr'
-    ? {
-        loading: 'Lecture de la bannière…',
-        noData:  'Ce PNG ne contient pas de données modifiables. Il a peut-être été ré-exporté par un autre outil.',
-        badFile: 'Impossible de lire ce PNG. Veuillez sélectionner une bannière téléchargée depuis cet outil.',
-        okTitle: 'Bannière restaurée',
-        okBody:  'Tous les champs, le logo et l\'image du prix ont été restaurés. Modifiez vos informations et régénérez.',
-      }
-    : {
-        loading: 'Reading banner…',
-        noData:  'This PNG does not contain editable data. It may have been re-exported by another tool.',
-        badFile: 'Could not read this PNG. Please select a banner downloaded from this tool.',
-        okTitle: 'Banner restored',
-        okBody:  'All fields, logo and prize image have been restored. Edit your details and re-generate.',
-      };
+  if (currentLang === 'fr') return {
+    loading: 'Lecture de la bannière…',
+    noData:  'Ce PNG ne contient pas de données modifiables. Il a peut-être été ré-exporté par un autre outil.',
+    badFile: 'Impossible de lire ce PNG. Veuillez sélectionner une bannière téléchargée depuis cet outil.',
+    okTitle: 'Bannière restaurée',
+    okBody:  'Tous les champs, le logo et l\'image du prix ont été restaurés. Modifiez vos informations et régénérez.',
+  };
+  if (currentLang === 'es') return {
+    loading: 'Leyendo la bandera…',
+    noData:  'Este PNG no contiene datos editables. Es posible que otro programa lo haya vuelto a exportar.',
+    badFile: 'No se pudo leer este PNG. Seleccione una bandera descargada desde esta herramienta.',
+    okTitle: 'Bandera restaurada',
+    okBody:  'Se restauraron todos los campos, el logo y la imagen del premio. Edite sus datos y vuelva a generar.',
+  };
+  return {
+    loading: 'Reading banner…',
+    noData:  'This PNG does not contain editable data. It may have been re-exported by another tool.',
+    badFile: 'Could not read this PNG. Please select a banner downloaded from this tool.',
+    okTitle: 'Banner restored',
+    okBody:  'All fields, logo and prize image have been restored. Edit your details and re-generate.',
+  };
 }
 
 function _showRestoreError(msg) {
@@ -4748,7 +4839,7 @@ function generateStandardPoster() {
   // and drawLogoOnCard skips drawing for _synthetic imgs, so the banner
   // renders normally (with the user's Banner Colors) minus the logo.
 
-  const prizeFileEarly = (raffleType==='prize'||raffleType==='tirage') ? state.prizeFile : null;
+  const prizeFileEarly = (raffleType==='prize'||raffleType==='tirage'||raffleType==='esrifa') ? state.prizeFile : null;
   const hasPrizeFileEarly = prizeFileEarly && state.prizeInputActive;
 
   function doRender(preloadedPrizeImg) {
@@ -4886,7 +4977,7 @@ function generateStandardPoster() {
         // Gap between tickets — left clean (no bar)
 
         // ── RIGHT ticket: PRIZE/50-50 RAFFLE, vertically centred in ry→ry+th ─
-        const hasPrize = (raffleType==='prize' || raffleType==='tirage') && document.getElementById('prizeImageUpload').files[0] && !document.getElementById('prizeImageUpload').disabled;
+        const hasPrize = (raffleType==='prize' || raffleType==='tirage' || raffleType==='esrifa') && document.getElementById('prizeImageUpload').files[0] && !document.getElementById('prizeImageUpload').disabled;
         // When a prize image is present, use a smaller raffle type so there is
         // room for the image below.  Otherwise use the full-size centred layout.
         // When prize image present OR showDetails, use compact text so details/image get space.
@@ -4908,7 +4999,7 @@ function generateStandardPoster() {
         ctx.strokeStyle = secondaryColor; ctx.lineWidth = 0.5;
         const _sq_S = getRaffleStrings(raffleType);
         const mainTxt2 = _sq_S.mainTxt;
-        const lts2 = (raffleType==='5050' || raffleType==='tirage5050') ? 6*sm2raw : 8*sm2raw;
+        const lts2 = (raffleType==='5050' || raffleType==='tirage5050' || raffleType==='es5050') ? 6*sm2raw : 8*sm2raw;
         const _sqFittedSz2 = fitMainFontSz(ctx, mainTxt2, lts2, tw - 60, mainFontSz2);
         ctx.font = `bold ${_sqFittedSz2}px Impact,"Arial Black",sans-serif`;
         const ltw2 = mainTxt2.split('').reduce((s,l) => s + ctx.measureText(l).width + lts2, 0) - lts2;
@@ -5021,7 +5112,7 @@ function generateStandardPoster() {
         }
 
         // ── RIGHT TICKET: Raffle text + (prize image) + details ───────────────────
-        const hasPrize2 = (raffleType === 'prize' || raffleType === 'tirage') &&
+        const hasPrize2 = (raffleType === 'prize' || raffleType === 'tirage' || raffleType === 'esrifa') &&
           document.getElementById('prizeImageUpload').files[0] &&
           !document.getElementById('prizeImageUpload').disabled;
 
@@ -5129,7 +5220,7 @@ function generateStandardPoster() {
         const mainTxt3 = _c3b_S.mainTxt;
         ctx.fillStyle = primaryColor; ctx.textAlign = 'center';
         ctx.strokeStyle = secondaryColor; ctx.lineWidth = 0.5;
-        const lts3 = (raffleType === '5050' || raffleType === 'tirage5050') ? 6 : 8;
+        const lts3 = (raffleType === '5050' || raffleType === 'tirage5050' || raffleType === 'es5050') ? 6 : 8;
         const _c3bFittedSz = fitMainFontSz(ctx, mainTxt3, lts3, avW - 20, mFS3);
         ctx.font = `bold ${_c3bFittedSz}px Impact,"Arial Black",sans-serif`;
         const ltw3 = mainTxt3.split('').reduce((s,l) => s + ctx.measureText(l).width + lts3, 0) - lts3;
@@ -5191,7 +5282,7 @@ function generateStandardPoster() {
         const lic=document.getElementById('licenceNumber').value;
         if(lic){ctx.fillStyle=primaryColor;ctx.globalAlpha=0.65;ctx.font='14px "Helvetica Neue",Helvetica,Arial,sans-serif';ctx.textAlign='center';ctx.fillText(`Licence ${lic}`,lx+tw/2,margin+th-24);ctx.globalAlpha=1;}
       }
-      const hasPrize=( raffleType==='prize' || raffleType==='tirage' )&&document.getElementById('prizeImageUpload').files[0]&&!document.getElementById('prizeImageUpload').disabled;
+      const hasPrize=( raffleType==='prize' || raffleType==='tirage' || raffleType==='esrifa' )&&document.getElementById('prizeImageUpload').files[0]&&!document.getElementById('prizeImageUpload').disabled;
       const enlarge=!showDetails&&!hasPrize, sm=enlarge?1.2:1.0;
       // Letter format with prize image: use compact text so prize image gets more space
       const letterPrize = isLetter && hasPrize;
@@ -5209,7 +5300,7 @@ function generateStandardPoster() {
       // enlarge (no details, no prize) → original hardcoded size so landscape ratios look correct.
       const mainFontBase = isPortrait
         ? Math.round(th * ((letterPrize || compactHeader) ? 0.18 : 0.28))
-        : (compactHeader ? Math.round(th * 0.20) : ((raffleType==='5050'||raffleType==='tirage5050') ? 119 : 120));
+        : (compactHeader ? Math.round(th * 0.20) : ((raffleType==='5050'||raffleType==='tirage5050'||raffleType==='es5050') ? 119 : 120));
       const mainFontSz = Math.round(mainFontBase * sm);
       // Y position of the raffle main text baseline.
       // compactHeader/letterPrize → anchor near ticket top so details can fill below.
@@ -5227,7 +5318,7 @@ function generateStandardPoster() {
       ctx.fillStyle=primaryColor; ctx.textAlign='center'; ctx.strokeStyle=secondaryColor; ctx.lineWidth=0.5;
       const _ns_S = getRaffleStrings(raffleType);
       const mainTxt=_ns_S.mainTxt;
-      const lts=(raffleType==='5050'||raffleType==='tirage5050')?6*sm:8*sm;
+      const lts=(raffleType==='5050'||raffleType==='tirage5050'||raffleType==='es5050')?6*sm:8*sm;
       const _nsFittedSz = fitMainFontSz(ctx, mainTxt, lts, tw - 60, mainFontSz);
       ctx.font=`bold ${_nsFittedSz}px Impact,"Arial Black",sans-serif`;
       const ltw=mainTxt.split('').reduce((s,l)=>s+ctx.measureText(l).width+lts,0)-lts;
@@ -5240,7 +5331,7 @@ function generateStandardPoster() {
       ctx.fillText(_ns_S.subTxt,rtx,subY);
       drawOrnDiv(ctx,rtx,subY+Math.round(18*sm),tw*0.3,primaryColor);
       let dsY=subY+Math.round(subFontSz*1.3);
-      if((raffleType==='prize'||raffleType==='tirage')&&hasPrize){
+      if((raffleType==='prize'||raffleType==='tirage'||raffleType==='esrifa')&&hasPrize){
         const pf=document.getElementById('prizeImageUpload').files[0];
         const pi=preloadedPrizeImg||new Image();
         function rp(){
@@ -5323,7 +5414,7 @@ function buildDetailDisplayLines(state) {
   if (state.totalTickets) lines.push({ text: S.totalTkts(state.totalTickets), bold: false, type: 'info' });
 
   // ── Prize information ───────────────────────────────────────────────────
-  if (raffleType === '5050' || raffleType === 'tirage5050') {
+  if (raffleType === '5050' || raffleType === 'tirage5050' || raffleType === 'es5050') {
     if (state.prizeAmount) {
       const maxSales = parseFloat(state.prizeAmount.replace(/,/g, '')) || 0;
       const prizeAmt = Math.floor(maxSales / 2);
@@ -5331,7 +5422,7 @@ function buildDetailDisplayLines(state) {
       lines.push({ text: S.prize5050(fmtMoney(prizeAmt)), bold: true, type: 'prize' });
       lines.push({ text: S.maxSales(fmtMoney(maxSales)), bold: false, type: 'prizeDetail' });
     }
-  } else if (raffleType === 'prize' || raffleType === 'tirage') {
+  } else if (raffleType === 'prize' || raffleType === 'tirage' || raffleType === 'esrifa') {
     if (state.prizeDescription) {
       const pvFmt = state.prizeValue ? `$${state.prizeValue}` : '';
       lines.push({ text: S.winnerGets(state.prizeDescription, pvFmt), bold: true, type: 'prize' });
@@ -5701,7 +5792,7 @@ function generateSportPoster() {
 
     // 5. Does the right ticket need the raffle label above the shape?
     //    Only when a prize image is uploaded OR additional details are on.
-    const hasPrizeImg=(raffleType==='prize'||raffleType==='tirage')&&document.getElementById('prizeImageUpload').files[0]&&!document.getElementById('prizeImageUpload').disabled;
+    const hasPrizeImg=(raffleType==='prize'||raffleType==='tirage'||raffleType==='esrifa')&&document.getElementById('prizeImageUpload').files[0]&&!document.getElementById('prizeImageUpload').disabled;
     const raffleAbove = hasPrizeImg || showDetails;
 
     // 6. Header zones — each ticket's space from its top edge to the top of its shape
@@ -6034,7 +6125,7 @@ function drawRaffleTextInShape(ctx, rcx, shapeInfo, raffleType, accentTextCol, a
   const subTxt  = _shape_S.subTxt;
 
   // Size text to ~58% of shape radius — constrain using ACTUAL rendered width (letter-spaced)
-  const ls = (raffleType==='5050' || raffleType==='tirage5050') ? 4 : 6;
+  const ls = (raffleType==='5050' || raffleType==='tirage5050' || raffleType==='es5050') ? 4 : 6;
   let mfs = Math.round(R * 0.58);
   ctx.font = `900 ${mfs}px Impact,"Arial Black",sans-serif`;
   const _rendW = () => mainTxt.split('').reduce((s,l)=>s+ctx.measureText(l).width+ls,0)-ls;
