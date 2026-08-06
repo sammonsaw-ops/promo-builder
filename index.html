@@ -25,7 +25,7 @@
       </div>
 
     <div class="header-right">
-      <button type="button" onclick="openInstructions()" style="
+      <button type="button" onclick="openInstructions()" aria-label="Open instructions" style="
         display:inline-flex;align-items:center;gap:6px;
         padding:7px 14px;border-radius:7px;border:1.5px solid var(--accent);
         background:var(--accent-light);color:var(--accent);
@@ -33,7 +33,7 @@
         letter-spacing:0.03em;cursor:pointer;transition:all .18s;white-space:nowrap;
       " onmouseover="this.style.background='var(--accent)';this.style.color='white';"
          onmouseout="this.style.background='var(--accent-light)';this.style.color='var(--accent)';">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M7 6.5v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="4.5" r="0.75" fill="currentColor"/></svg>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M7 6.5v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="4.5" r="0.75" fill="currentColor"/></svg>
         <span id="instructionsLabel">Instructions for Use</span>
       </button>
 
@@ -41,10 +41,10 @@
   </header>
 
   <!-- ── APP BODY ─────────────────────────────────────────────────────── -->
-  <div class="app-body">
+  <main class="app-body" id="appMain">
 
     <!-- LEFT PANEL -->
-    <aside class="controls-panel">
+    <aside class="controls-panel" aria-label="Banner controls">
       <div class="controls-inner">
 
         <!-- STEP 1: Raffle Type (also selects language) -->
@@ -80,11 +80,11 @@
           </div>
           <div class="step-body">
             <div class="mode-switcher">
-              <button type="button" class="mode-btn active" id="modeStandard" onclick="setMode('standard')">
-                <span class="mode-icon">🎟️</span><span id="modeStandardLabel"> Standard</span>
+              <button type="button" class="mode-btn active" id="modeStandard" onclick="setMode('standard')" aria-label="Standard banner mode">
+                <span class="mode-icon" aria-hidden="true">🎟️</span><span id="modeStandardLabel"> Standard</span>
               </button>
-              <button type="button" class="mode-btn" id="modeSport" onclick="setMode('sport')">
-                <span class="mode-icon">🏆</span><span id="modeSportLabel"> Sport</span>
+              <button type="button" class="mode-btn" id="modeSport" onclick="setMode('sport')" aria-label="Sport banner mode">
+                <span class="mode-icon" aria-hidden="true">🏆</span><span id="modeSportLabel"> Sport</span>
               </button>
             </div>
             <!-- Sport Selector -->
@@ -420,13 +420,13 @@
         </div>
       </div>
 
-      <div class="preview-area" id="previewArea">
-        <div class="preview-placeholder" id="previewPlaceholder">
-          <div class="placeholder-icon">🎟️</div>
+      <div class="preview-area" id="previewArea" aria-label="Banner preview">
+        <div class="preview-placeholder" id="previewPlaceholder" role="status">
+          <div class="placeholder-icon" aria-hidden="true">🎟️</div>
           <div class="placeholder-title" id="placeholderTitle">Your banner appears here</div>
           <div class="placeholder-sub" id="placeholderSub">Fill in your details on the left, then click Generate Banner to create a print-ready raffle promo.</div>
         </div>
-        <canvas id="preview" width="1080" height="608"></canvas>
+        <canvas id="preview" width="1080" height="608" aria-label="Generated raffle promo banner"></canvas>
       </div>
 
       <div class="preview-actions" id="downloadSection">
@@ -443,14 +443,15 @@
         </div>
       </div>
 
-            <!-- Toast notification -->
-      <div class="session-saved-toast" id="toast"></div>
+            <!-- Toast notification (legacy — PB.Toast is the accessible upgrade) -->
+      <div class="session-saved-toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
     </section>
 
-  </div><!-- end app-body -->
+  </main><!-- end app-body -->
 
   <script src="vendor/color-thief.umd.js"></script>
   <script src="vendor/qrcode.min.js"></script>
+  <script type="module" src="js/ui/components.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

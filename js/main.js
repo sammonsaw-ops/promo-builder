@@ -44,6 +44,60 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// ── PB UI Kit — progressive enhancement of existing controls ─────────────────
+// Adds ARIA roles, keyboard navigation, and screen-reader hints without
+// altering any behavior wired in the HTML.
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    // Toggle-row → role=switch with Space/Enter to activate
+    window.PB?.enhanceSwitches?.();
+
+    // Sport & ratio grids → arrow-key navigation
+    window.PB?.enhanceRadioGroup?.('#sportGrid',  { orientation: 'grid', role: 'radiogroup' });
+    window.PB?.enhanceRadioGroup?.('#ratioGrid',  { orientation: 'grid', role: 'radiogroup' });
+
+    // Mode switcher → tablist-style keyboard nav
+    const modeSwitcher = document.querySelector('.mode-switcher');
+    if (modeSwitcher) {
+      modeSwitcher.setAttribute('role', 'tablist');
+      modeSwitcher.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', btn.classList.contains('active') ? 'true' : 'false');
+      });
+      // Keep aria-selected in sync when class changes
+      new MutationObserver(() => {
+        modeSwitcher.querySelectorAll('.mode-btn').forEach(btn => {
+          btn.setAttribute('aria-selected', btn.classList.contains('active') ? 'true' : 'false');
+        });
+      }).observe(modeSwitcher, { subtree: true, attributes: true, attributeFilter: ['class'] });
+      window.PB?.enhanceRadioGroup?.(modeSwitcher, { orientation: 'horizontal', role: 'tablist' });
+    }
+
+    // Sport/ratio buttons → set aria-pressed to reflect selection
+    const syncPressed = (root, selector) => {
+      const host = document.querySelector(root);
+      if (!host) return;
+      host.querySelectorAll(selector).forEach(b => b.setAttribute('aria-pressed', b.classList.contains('active') ? 'true' : 'false'));
+      new MutationObserver(() => {
+        host.querySelectorAll(selector).forEach(b => b.setAttribute('aria-pressed', b.classList.contains('active') ? 'true' : 'false'));
+      }).observe(host, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    };
+    syncPressed('#sportGrid', '.sport-btn');
+    syncPressed('#ratioGrid', '.ratio-btn');
+
+    // Live region for status updates → announce Generate progress
+    const status = document.getElementById('statusText');
+    if (status) {
+      status.setAttribute('role', 'status');
+      status.setAttribute('aria-live', 'polite');
+      status.setAttribute('aria-atomic', 'true');
+    }
+  } catch (err) {
+    // Progressive enhancement — never block the app if the UI kit is missing.
+    console.debug('PB enhancement skipped:', err?.message);
+  }
+});
+
 
 // ─── State ─────────────────────────────────────────────────────────────────
 let currentMode = 'standard';
@@ -680,17 +734,54 @@ function generatePoster() {
   const S = UI_STRINGS[currentLang];
   setStatus('', S.statusGenerating);
   const btn = document.querySelector('.btn-generate');
-  if (btn) { btn.disabled = true; btn.innerHTML = `⏳ ${S.statusGenerating}`; }
+  if (btn) {
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.innerHTML = `⏳ ${S.statusGenerating}`;
+  }
+  // Show the preview skeleton if the current canvas is still empty (first paint).
+  // Skipping when the canvas is already visible avoids flashing on re-renders.
+  const canvasVisible = document.getElementById('preview')?.classList.contains('visible');
+  if (!canvasVisible && window.PB?.Preview) {
+    try { window.PB.Preview.setLoading(true, _currentAspectString()); } catch(_) {}
+  }
   setTimeout(() => {
     try {
       _runGeneratePoster();
     } catch(e) {
       console.error(e);
       setStatus('', S.statusError);
-      alert(S.alertError);
+      if (window.PB?.Toast) {
+        window.PB.Toast.show({ title: 'Render failed', message: S.alertError, kind: 'danger', duration: 4500 });
+      } else {
+        alert(S.alertError);
+      }
     }
-    if (btn) { btn.disabled = false; btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg> ${S.generateBtn}`; }
+    if (window.PB?.Preview) {
+      try { window.PB.Preview.setLoading(false); } catch(_) {}
+    }
+    if (btn) {
+      btn.disabled = false;
+      btn.removeAttribute('aria-busy');
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg> ${S.generateBtn}`;
+    }
   }, 50);
+}
+
+// Best-effort aspect string ("16 / 9") for the preview skeleton box.
+function _currentAspectString() {
+  try {
+    const btn = document.querySelector('.ratio-btn.active');
+    const r = btn?.getAttribute('data-ratio') || '16:9';
+    if (r === 'custom') {
+      const w = +document.getElementById('crpW')?.value || 16;
+      const h = +document.getElementById('crpH')?.value || 9;
+      return `${w} / ${h}`;
+    }
+    if (r === 'letter') return '8.5 / 11';
+    const [a, b] = r.split(':').map(Number);
+    return (a && b) ? `${a} / ${b}` : '16 / 9';
+  } catch(_) { return '16 / 9'; }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1467,6 +1558,12 @@ async function copyToClipboard() {
 
 // ── TOAST NOTIFICATION ────────────────────────────────────────────────────
 function showToast(msg, duration=2800) {
+  // Prefer the accessible PB toast when the UI kit is loaded; fall back to
+  // the legacy #toast element so this function keeps working standalone.
+  if (window.PB?.Toast) {
+    window.PB.Toast.show({ message: msg, kind: 'info', duration });
+    return;
+  }
   const t = document.getElementById('toast');
   if (!t) return;
   t.textContent = msg;
@@ -5198,14 +5295,14 @@ function generateSportPoster() {
     // WCAG AAA threshold: L_bg ≤ 0.0667  (contrast = (1.0+0.05)/(L+0.05) ≥ 7)
     function toAccessibleDark(r,g,b){
       let scale = 1.0;
-      for(let iter=0; iter<20; iter++){
+      for(let iter=0; iter<24; iter++){
         const lr = r*scale/255, lg = g*scale/255, lb = b*scale/255;
         // Linearise sRGB
         const lin = v => v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4);
         const lum = 0.2126*lin(lr) + 0.7152*lin(lg) + 0.0722*lin(lb);
         const contrast = (1.05)/(lum+0.05);
-        if(contrast >= 6.5) break;
-        scale *= 0.82;
+        if(contrast >= 7.0) break; // WCAG AAA
+        scale *= 0.85;
       }
       return [Math.round(r*scale), Math.round(g*scale), Math.round(b*scale)];
     }
@@ -5241,18 +5338,32 @@ function generateSportPoster() {
       ctx.fillStyle = bandColor;
       ctx.fillRect(tx, bandTop, tw2, bH);
 
-      // Subtle inner glow / vignette to give the band depth
+      // Refined depth: crisper highlight at the outer edge, softer shadow at the
+      // interior edge. Reversed for bottom-side ticket so the "light" edge is
+      // always the outer (visually top) edge of the ticket.
+      const isBottomSide = (side2 === 'bottom');
       const bgVig = ctx.createLinearGradient(tx, bandTop, tx, bandTop + bH);
-      bgVig.addColorStop(0,   'rgba(255,255,255,0.08)');
-      bgVig.addColorStop(0.4, 'rgba(0,0,0,0.00)');
-      bgVig.addColorStop(1,   'rgba(0,0,0,0.18)');
+      if (isBottomSide) {
+        bgVig.addColorStop(0,    'rgba(0,0,0,0.22)');
+        bgVig.addColorStop(0.55, 'rgba(0,0,0,0.00)');
+        bgVig.addColorStop(1,    'rgba(255,255,255,0.11)');
+      } else {
+        bgVig.addColorStop(0,    'rgba(255,255,255,0.11)');
+        bgVig.addColorStop(0.45, 'rgba(0,0,0,0.00)');
+        bgVig.addColorStop(1,    'rgba(0,0,0,0.22)');
+      }
       ctx.fillStyle = bgVig;
       ctx.fillRect(tx, bandTop, tw2, bH);
 
-      // Crisp separator line — white on bottom edge (or top edge for 'bottom' side)
-      ctx.strokeStyle = 'rgba(255,255,255,0.30)';
+      // Crisp separator line — soft gradient stroke instead of flat white for
+      // a more premium look. Fades out at the ticket edges.
+      const sepY = isBottomSide ? bandTop + 1 : bandTop + bH - 1;
+      const sepGrad = ctx.createLinearGradient(tx, sepY, tx + tw2, sepY);
+      sepGrad.addColorStop(0,    'rgba(255,255,255,0.05)');
+      sepGrad.addColorStop(0.5,  'rgba(255,255,255,0.40)');
+      sepGrad.addColorStop(1,    'rgba(255,255,255,0.05)');
+      ctx.strokeStyle = sepGrad;
       ctx.lineWidth = 1.5;
-      const sepY = (side2 === 'bottom') ? bandTop + 0.75 : bandTop + bH - 0.75;
       ctx.beginPath(); ctx.moveTo(tx, sepY); ctx.lineTo(tx + tw2, sepY); ctx.stroke();
 
       // ── TEXT ─────────────────────────────────────────────────────────────────
@@ -5561,7 +5672,42 @@ function drawSportBand(ctx,x,y,w,h,side,cr,sport){
     ctx.closePath(); ctx.fill();
     ctx.restore();
   } else if(sport.name==='FIGURE SKATING') {
-    // No icon drawn — clean band for figure skating
+    // Discreet skate-blade icon: a chromed curve with two mounting posts and a
+    // trailing swoosh (motion). Keeps the band consistent with all other sports
+    // while staying stylistically light.
+    ctx.save();
+    ctx.translate(icx, icy);
+    // Blade — chrome gradient stroke
+    const bladeGrad = ctx.createLinearGradient(0, -3, 0, 5);
+    bladeGrad.addColorStop(0,   'rgba(255,255,255,0.98)');
+    bladeGrad.addColorStop(0.5, 'rgba(220,230,240,0.85)');
+    bladeGrad.addColorStop(1,   'rgba(255,255,255,0.70)');
+    ctx.strokeStyle = bladeGrad;
+    ctx.lineWidth = 2.6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-14, 4);
+    ctx.quadraticCurveTo(-14, -1, -9, -1);
+    ctx.lineTo(9, -1);
+    ctx.quadraticCurveTo(14, -1, 14, 4);
+    ctx.stroke();
+    // Two mounting posts up to the boot line
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(-6, -1); ctx.lineTo(-6, -7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 6, -1); ctx.lineTo( 6, -7); ctx.stroke();
+    // Boot line
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(-8, -7); ctx.lineTo(8, -7); ctx.stroke();
+    // Motion swoosh — a light trailing curve suggesting a spin trail
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-22, 8);
+    ctx.quadraticCurveTo(-14, 12, -2, 10);
+    ctx.stroke();
+    ctx.restore();
   } else if(sport.name==='BASEBALL') {
     // Baseball — white ball with red stitching curves
     ctx.save();
