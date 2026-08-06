@@ -486,7 +486,12 @@ function addPackage() {
   });
   c.appendChild(r);
 }
-function removePackage(btn) { btn.parentElement.remove(); }
+function removePackage(btn) {
+  btn.parentElement.remove();
+  // Trigger a debounced re-render so the preview reflects the removed row
+  // without the user having to click Generate Banner.
+  scheduleAutoPreview();
+}
 
 function togglePrizeImage() {
   const t = document.getElementById('raffleType').value;
@@ -3735,27 +3740,31 @@ function fillCurlingSheet(ctx, x, y, w, h) {
   ctx.strokeStyle='rgba(200,20,20,0.30)'; ctx.lineWidth=1.5;
   ctx.beginPath(); ctx.moveTo(x+w*0.05,y+h*0.87); ctx.lineTo(x+w*0.95,y+h*0.87); ctx.stroke();
   ctx.restore();
-  // House target (at the near end — rings centred at ~87% down)
-  const hcx=x+w/2, hcy=y+h*0.87, hRmax=Math.min(w*0.40, h*0.16);
-  ctx.save();
-  const ringColors=[
-    {r:'rgba(200,20,20,0.35)',s:1.0},
-    {r:'rgba(255,255,255,0.50)',s:0.75},
-    {r:'rgba(20,80,200,0.35)',s:0.50},
-    {r:'rgba(255,255,255,0.50)',s:0.25},
-  ];
-  ringColors.forEach(({r,s})=>{ctx.fillStyle=r;ctx.beginPath();ctx.ellipse(hcx,hcy,hRmax*s,hRmax*s*0.55,0,0,Math.PI*2);ctx.fill();});
-  ctx.restore();
-  // Curling rock centred at bottom
-  const rx2=x+w/2, ry2=y+h*0.87, rr=Math.min(w,h)*0.08;
-  const rg2=ctx.createRadialGradient(rx2-rr*0.3,ry2-rr*0.3,rr*0.1,rx2,ry2,rr);
-  rg2.addColorStop(0,'#888'); rg2.addColorStop(0.5,'#555'); rg2.addColorStop(1,'#2a2a2a');
-  ctx.fillStyle=rg2; ctx.beginPath(); ctx.ellipse(rx2,ry2,rr,rr*0.55,0,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.ellipse(rx2,ry2,rr,rr*0.55,0,0,Math.PI*2); ctx.stroke();
-  // Handle (yellow)
-  ctx.fillStyle='rgba(255,220,20,0.80)';
-  ctx.beginPath(); ctx.ellipse(rx2,ry2-rr*0.38,rr*0.30,rr*0.15,0,0,Math.PI*2); ctx.fill();
+  // House rings around the white sport shape — a curling "house" is a
+  // series of concentric coloured rings (red outer, white, blue inner,
+  // white button). Rather than drawing them at a fixed position on the ice,
+  // we render them as a halo around the shape so the shape becomes the
+  // button and the ice sheet reads as one aligned composition.
+  const _crFo = (typeof window !== 'undefined') ? window._sportFillOpts : null;
+  const _crCx = x + w / 2;
+  const _crCy = _crFo?.shapeCy ?? (y + h / 2);
+  const _crSR = _crFo?.shapeR;
+  if (_crSR) {
+    ctx.save();
+    // Red outer ring
+    ctx.fillStyle = 'rgba(200,20,20,0.55)';
+    ctx.beginPath(); ctx.arc(_crCx, _crCy, _crSR * 1.22, 0, Math.PI * 2); ctx.fill();
+    // White band
+    ctx.fillStyle = 'rgba(255,255,255,0.60)';
+    ctx.beginPath(); ctx.arc(_crCx, _crCy, _crSR * 1.15, 0, Math.PI * 2); ctx.fill();
+    // Blue ring
+    ctx.fillStyle = 'rgba(20,80,200,0.55)';
+    ctx.beginPath(); ctx.arc(_crCx, _crCy, _crSR * 1.08, 0, Math.PI * 2); ctx.fill();
+    // Inner white band — sits directly against the shape's outline
+    ctx.fillStyle = 'rgba(255,255,255,0.70)';
+    ctx.beginPath(); ctx.arc(_crCx, _crCy, _crSR * 1.02, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
 }
 const fillCurlingSheetLeft=fillCurlingSheet, fillCurlingSheetRight=fillCurlingSheet;
 
