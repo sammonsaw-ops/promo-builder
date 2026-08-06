@@ -1110,11 +1110,78 @@ function fitMainFontSz(ctx, text, lts, maxW, startSz) {
 
 
 
+// ── SPORT GFX PRIMITIVES ────────────────────────────────────────────────
+// Shared canvas helpers used across the sport drawXxxBg functions. Each
+// primitive is a self-contained routine that saves/restores ctx state
+// where relevant so callers don't have to. Extracted from patterns that
+// recurred verbatim across ~15 sports.
+const gfx = {
+  // Full-canvas vertical linear gradient. stops is [[offset, color], ...].
+  linearFill(ctx, W, H, stops) {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    for (const [o, c] of stops) g.addColorStop(o, c);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  },
+
+  // Horizontal line texture overlay (subtle striations). Opts:
+  //   color, alpha (default 0.06), lineWidth (default 1), step (default 22)
+  horizontalTexture(ctx, W, H, opts) {
+    const { color, alpha = 0.06, lineWidth = 1, step = 22 } = opts;
+    ctx.save();
+    ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = lineWidth;
+    for (let y = 0; y < H; y += step) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    ctx.restore();
+  },
+
+  // Alternating vertical stripes covering the full canvas.
+  // colors is [colorA, colorB, ...]; stripes cycle through the array.
+  vStripes(ctx, W, H, count, colors) {
+    const sw = W / count;
+    for (let i = 0; i < count; i++) {
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fillRect(i * sw, 0, sw, H);
+    }
+  },
+
+  // Wood-grain row texture (used for basketball/volleyball floor).
+  // opts: base (starting shade), step (shade increment per row),
+  //       rowH (row height px), tint {r,g,b} multipliers, rOffset
+  woodTexture(ctx, W, H, opts) {
+    const { base, step, rowH, tint, rOffset = 0 } = opts;
+    for (let i = 0; i < H / rowH; i++) {
+      const s = base + (i % 3) * step;
+      const r = Math.min(255, s + rOffset);
+      const g = Math.round(s * tint.g);
+      const b = Math.round(s * tint.b);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(0, i * rowH, W, rowH - 1);
+    }
+  },
+
+  // Wavy horizontal lines (water surface). Opts:
+  //   color, alpha, lineWidth, step (spacing), amp (wave amplitude),
+  //   cycles (sine cycles across width), startY (first wave), xStep (line detail)
+  waves(ctx, W, H, opts) {
+    const { color, alpha = 0.12, lineWidth = 2, step = 38, amp = 5, cycles = 10, startY = 0, xStep = 8 } = opts;
+    ctx.save();
+    ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = lineWidth;
+    for (let y = startY; y < H; y += step) {
+      ctx.beginPath();
+      for (let x = 0; x <= W; x += xStep) {
+        const wy = y + Math.sin((x / W) * Math.PI * cycles) * amp;
+        x === 0 ? ctx.moveTo(x, wy) : ctx.lineTo(x, wy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  },
+};
+
 // ── SWIMMING ────────────────────────────────────────────────────────────
 function drawSwimmingBg(ctx, W, H) {
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#1056a8'); g.addColorStop(1,'#1a3a8a');
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  gfx.linearFill(ctx, W, H, [[0, '#1056a8'], [1, '#1a3a8a']]);
   const lanes=8;
   for(let i=1;i<lanes;i++){
     const lx=W*(i/lanes);
@@ -1122,13 +1189,7 @@ function drawSwimmingBg(ctx, W, H) {
     ctx.beginPath(); ctx.moveTo(lx,0); ctx.lineTo(lx,H); ctx.stroke();
     ctx.fillStyle=i%2===0?'#e8901e':'#c85010';
   }
-  ctx.save(); ctx.globalAlpha=0.12; ctx.strokeStyle='#90d8f0'; ctx.lineWidth=2;
-  for(let y=0;y<H;y+=38){
-    ctx.beginPath();
-    for(let x=0;x<=W;x+=8){const wy=y+Math.sin((x/W)*Math.PI*10)*5;x===0?ctx.moveTo(x,wy):ctx.lineTo(x,wy);}
-    ctx.stroke();
-  }
-  ctx.restore();
+  gfx.waves(ctx, W, H, { color: '#90d8f0', alpha: 0.12, lineWidth: 2, step: 38, amp: 5, cycles: 10, xStep: 8 });
   ctx.strokeStyle='rgba(0,0,0,0.55)'; ctx.lineWidth=5;
   [[0,H*0.33],[0,H*0.67],[W,H*0.33],[W,H*0.67]].forEach(([bx,by])=>{
     const dir=bx===0?1:-1;
@@ -2011,9 +2072,7 @@ function scalloppedRect(ctx, x, y, w, h, cornerR, side) {
 
 function drawHockeyBg(ctx, W, H) {
   // Bright ice
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#e8f4fd'); g.addColorStop(1,'#f6fbff');
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  gfx.linearFill(ctx, W, H, [[0, '#e8f4fd'], [1, '#f6fbff']]);
   ctx.fillStyle='#f8f8f8'; ctx.fillRect(0,0,W,22);
   ctx.fillStyle='#dff0fa'; ctx.fillRect(0,22,W,8);
   ctx.fillStyle='#ff4040'; ctx.fillRect(0,30,W,6);
@@ -2191,14 +2250,8 @@ function drawSoftballBg(ctx, W, H) {
 }
 
 function drawBasketballBg(ctx, W, H) {
-  for(let i=0;i<H/22;i++){
-    const shade=190+(i%3)*8;
-    ctx.fillStyle=`rgb(${shade+20},${Math.round(shade*0.82)},${Math.round(shade*0.55)})`;
-    ctx.fillRect(0,i*22,W,21);
-  }
-  ctx.save(); ctx.globalAlpha=0.06; ctx.strokeStyle='#000'; ctx.lineWidth=1;
-  for(let y=0;y<H;y+=22){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-  ctx.restore();
+  gfx.woodTexture(ctx, W, H, { base: 190, step: 8, rowH: 22, tint: { g: 0.82, b: 0.55 }, rOffset: 20 });
+  gfx.horizontalTexture(ctx, W, H, { color: '#000', alpha: 0.06, lineWidth: 1, step: 22 });
   ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=3;
   ctx.strokeRect(W*0.04,H*0.07,W*0.92,H*0.86);
   ctx.beginPath(); ctx.moveTo(W/2,H*0.07); ctx.lineTo(W/2,H*0.93); ctx.stroke();
@@ -2218,9 +2271,7 @@ function drawBasketballBg(ctx, W, H) {
 }
 
 function drawWaterPoloBg(ctx, W, H) {
-  const wg=ctx.createLinearGradient(0,0,0,H);
-  wg.addColorStop(0,'#1565c0'); wg.addColorStop(1,'#1e88e5');
-  ctx.fillStyle=wg; ctx.fillRect(0,0,W,H);
+  gfx.linearFill(ctx, W, H, [[0, '#1565c0'], [1, '#1e88e5']]);
   ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=2;
   for(let y=H*0.15;y<H*0.9;y+=H*0.12){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
   ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=3;
@@ -2235,24 +2286,12 @@ function drawWaterPoloBg(ctx, W, H) {
   ctx.fillRect(W*0.02,H*0.38,W*0.04,H*0.24); ctx.fillRect(W*0.94,H*0.38,W*0.04,H*0.24);
   ctx.strokeStyle='rgba(255,255,255,0.75)'; ctx.lineWidth=3;
   ctx.strokeRect(W*0.02,H*0.38,W*0.04,H*0.24); ctx.strokeRect(W*0.94,H*0.38,W*0.04,H*0.24);
-  ctx.save(); ctx.globalAlpha=0.08; ctx.strokeStyle='#90caf9'; ctx.lineWidth=1;
-  for(let y=30;y<H;y+=40){
-    ctx.beginPath();
-    for(let x=0;x<=W;x+=4){const wy=y+Math.sin((x/W)*Math.PI*8)*5; x===0?ctx.moveTo(x,wy):ctx.lineTo(x,wy);}
-    ctx.stroke();
-  }
-  ctx.restore();
+  gfx.waves(ctx, W, H, { color: '#90caf9', alpha: 0.08, lineWidth: 1, step: 40, amp: 5, cycles: 8, startY: 30, xStep: 4 });
 }
 
 function drawVolleyballBg(ctx, W, H) {
-  for(let i=0;i<H/22;i++){
-    const shade=195+(i%3)*7;
-    ctx.fillStyle=`rgb(${Math.min(255,shade+30)},${Math.round(shade*0.85)},${Math.round(shade*0.52)})`;
-    ctx.fillRect(0,i*22,W,21);
-  }
-  ctx.save(); ctx.globalAlpha=0.05; ctx.strokeStyle='#000'; ctx.lineWidth=1;
-  for(let y=0;y<H;y+=22){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-  ctx.restore();
+  gfx.woodTexture(ctx, W, H, { base: 195, step: 7, rowH: 22, tint: { g: 0.85, b: 0.52 }, rOffset: 30 });
+  gfx.horizontalTexture(ctx, W, H, { color: '#000', alpha: 0.05, lineWidth: 1, step: 22 });
   ctx.strokeStyle='rgba(255,255,255,0.95)'; ctx.lineWidth=3;
   ctx.strokeRect(W*0.06,H*0.08,W*0.88,H*0.84);
   ctx.beginPath(); ctx.moveTo(W/2,H*0.08); ctx.lineTo(W/2,H*0.92); ctx.stroke();
@@ -2269,12 +2308,8 @@ function drawVolleyballBg(ctx, W, H) {
 }
 
 function drawCurlingBg(ctx, W, H) {
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#e8f0f5'); g.addColorStop(1,'#f5f9fc');
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  ctx.save(); ctx.globalAlpha=0.04; ctx.strokeStyle='#78909c'; ctx.lineWidth=0.5;
-  for(let i=0;i<H;i+=10){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(W,i);ctx.stroke();}
-  ctx.restore();
+  gfx.linearFill(ctx, W, H, [[0, '#e8f0f5'], [1, '#f5f9fc']]);
+  gfx.horizontalTexture(ctx, W, H, { color: '#78909c', alpha: 0.04, lineWidth: 0.5, step: 10 });
   ctx.strokeStyle='#ef5350'; ctx.lineWidth=5;
   ctx.beginPath(); ctx.moveTo(0,H*0.24); ctx.lineTo(W,H*0.24); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0,H*0.76); ctx.lineTo(W,H*0.76); ctx.stroke();
