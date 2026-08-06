@@ -2288,7 +2288,10 @@ function clipToSportShape(ctx, x, y, w, h, sportKey, cy_override) {
    Extracts 5 key colours from an uploaded logo using ColorThief,
    stores them in window.brandPalette, and powers the palette UI.
 ═══════════════════════════════════════════════════════════════ */
-window.brandPalette = null; // {dark, primary, accent, mid, light} as hex strings
+// brandPalette is seeded near the top of the file from the Banner Colors
+// pickers so the very first render (before any logo upload) has valid
+// hex strings for every key. Do not reset it to null here — that would
+// wipe the seed and leave the logoless render path with no palette.
 
 function _rgbToHexStr(r,g,b) {
   return '#' + [r,g,b].map(v => Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
