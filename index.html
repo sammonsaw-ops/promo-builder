@@ -1604,6 +1604,81 @@ function getPaletteCached(img, n) {
   return p;
 }
 
+// ── Palette derivation for renderers ────────────────────────────────────────
+// Two distinct strategies:
+//   deriveStandardColors — picks primary/secondary/accent to build the standard
+//     poster's diagonal gradient background. Prefers saturated, mid-brightness
+//     colours; falls back to a gray-scale-aware selection when the logo is
+//     nearly monochrome.
+//   deriveSportColors — picks accent + darkest + lightest for sport-specific
+//     text stroke and shape stroke work. Uses the dominant colour helper.
+// Both honour window.brandPalette when the user has confirmed one.
+
+function deriveStandardColors(img) {
+  let palette;
+  try { palette = getPaletteCached(img, 8); }
+  catch (_e) { palette = [[40,60,120],[80,100,160],[60,80,140],[100,120,180],[120,140,200],[50,70,130],[90,110,170],[70,90,150]]; }
+
+  const getSat = (r,g,b) => { const mx=Math.max(r,g,b), mn=Math.min(r,g,b); return mx===0 ? 0 : (mx-mn)/mx; };
+  const getBri = (r,g,b) => Math.max(r,g,b)/255;
+
+  let totalSat = 0;
+  for (const c of palette) totalSat += getSat(...c);
+  const isGray = (totalSat / palette.length) < 0.15;
+
+  let best = palette[0], bestS = -1;
+  for (const c of palette) {
+    const [r,g,b] = c;
+    const sat = getSat(r,g,b), bri = getBri(r,g,b);
+    if (bri > 0.85) continue;
+    const score = isGray ? 1 - bri : sat * (1 - bri * 0.5);
+    if (score > bestS) { bestS = score; best = c; }
+  }
+
+  let primaryColor, secondaryColor, accentColor;
+  if (window.brandPalette) {
+    primaryColor   = `rgb(${hexToRgbArr(window.brandPalette.primary).join(',')})`;
+    secondaryColor = `rgb(${hexToRgbArr(window.brandPalette.mid).join(',')})`;
+    accentColor    = `rgb(${hexToRgbArr(window.brandPalette.accent).join(',')})`;
+  } else {
+    primaryColor   = `rgb(${best.join(',')})`;
+    secondaryColor = `rgb(${palette[1].join(',')})`;
+    accentColor    = `rgb(${palette[2].join(',')})`;
+  }
+
+  const colorDiff = Math.sqrt(
+    Math.pow(palette[0][0]-palette[1][0], 2) +
+    Math.pow(palette[0][1]-palette[1][1], 2) +
+    Math.pow(palette[0][2]-palette[1][2], 2)
+  );
+  const isSingleColored = colorDiff < 50;
+
+  return { primaryColor, secondaryColor, accentColor, isSingleColored };
+}
+
+function deriveSportColors(img) {
+  if (window.brandPalette) {
+    const accentColor   = hexToRgbArr(window.brandPalette.accent);
+    const darkestColor  = hexToRgbArr(window.brandPalette.dark);
+    const lightestColor = hexToRgbArr(window.brandPalette.light);
+    const lightestLum   = (0.299*lightestColor[0] + 0.587*lightestColor[1] + 0.114*lightestColor[2]) / 255;
+    return { accentColor, lightestColor, darkestColor, lightestLum };
+  }
+
+  const accentColor = getDominantColor(img);
+  let logoPalette = [[80,80,80]];
+  try { logoPalette = getPaletteCached(img, 8); } catch (_e) {}
+
+  let lightestLum = -1, darkestLum = 2;
+  let lightestColor = [255,255,255], darkestColor = [0,0,0];
+  for (const [r,g,b] of logoPalette) {
+    const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+    if (lum > lightestLum) { lightestLum = lum; lightestColor = [r,g,b]; }
+    if (lum < darkestLum)  { darkestLum  = lum; darkestColor  = [r,g,b]; }
+  }
+  return { accentColor, lightestColor, darkestColor, lightestLum };
+}
+
 function updateQrPreview(url) {
   const wrap = document.getElementById('qrPreviewWrap');
   const box  = document.getElementById('qrPreviewBox');
@@ -4464,33 +4539,7 @@ function generateStandardPoster() {
   function doRender(preloadedPrizeImg) {
     const img=new Image();
     img.onload=()=>{
-      let palette;
-      try { palette = getPaletteCached(img, 8); } catch(_e) { palette=[[40,60,120],[80,100,160],[60,80,140],[100,120,180],[120,140,200],[50,70,130],[90,110,170],[70,90,150]]; }
-      function getSat(r,g,b){const mx=Math.max(r,g,b),mn=Math.min(r,g,b);return mx===0?0:(mx-mn)/mx;}
-      function getBri(r,g,b){return Math.max(r,g,b)/255;}
-      let totalSat=0;
-      for(const c of palette) totalSat+=getSat(...c);
-      const isGray=(totalSat/palette.length)<0.15;
-      let best=palette[0], bestS=-1;
-      for(const c of palette){
-        const[r,g,b]=c, sat=getSat(r,g,b), bri=getBri(r,g,b);
-        if(bri>0.85) continue;
-        const score=isGray?1-bri:sat*(1-bri*0.5);
-        if(score>bestS){bestS=score;best=c;}
-      }
-      let primaryColor, secondaryColor, accentColor;
-      if (window.brandPalette) {
-        // Use the user-confirmed (or auto-extracted) brand palette
-        primaryColor   = `rgb(${hexToRgbArr(window.brandPalette.primary).join(',')})`;
-        secondaryColor = `rgb(${hexToRgbArr(window.brandPalette.mid).join(',')})`;
-        accentColor    = `rgb(${hexToRgbArr(window.brandPalette.accent).join(',')})`;
-      } else {
-        primaryColor   = `rgb(${best.join(',')})`;
-        secondaryColor = `rgb(${palette[1].join(',')})`;
-        accentColor    = `rgb(${palette[2].join(',')})`;
-      }
-      const colorDiff=Math.sqrt(Math.pow(palette[0][0]-palette[1][0],2)+Math.pow(palette[0][1]-palette[1][1],2)+Math.pow(palette[0][2]-palette[1][2],2));
-      const isSingleColored=colorDiff<50;
+      const { primaryColor, secondaryColor, accentColor, isSingleColored } = deriveStandardColors(img);
       const W=canvas.width, H=canvas.height;
       const isPortrait = H >= W * 0.9;  // 1:1 treated as portrait for stacked layout
       const g=ctx.createLinearGradient(0,0,W,H);
@@ -5203,27 +5252,7 @@ function generateSportPoster() {
   const W=canvas.width, H=canvas.height;
   const img=new Image();
   img.onload=()=>{
-    let accentColor, lightestColor=[255,255,255], darkestColor=[0,0,0];
-    let lightestLum=0.95; // declared here so it's always in scope
-    if (window.brandPalette) {
-      // Use user-confirmed brand palette
-      accentColor   = hexToRgbArr(window.brandPalette.accent);
-      darkestColor  = hexToRgbArr(window.brandPalette.dark);
-      lightestColor = hexToRgbArr(window.brandPalette.light);
-      lightestLum   = (0.299*lightestColor[0]+0.587*lightestColor[1]+0.114*lightestColor[2])/255;
-    } else {
-      accentColor = getDominantColor(img);
-      // Extract full palette for lightest/darkest colour (text stroke and soccer shape stroke)
-      let logoPalette=[[80,80,80]];
-      try { logoPalette = getPaletteCached(img, 8); } catch(e){}
-      lightestLum=-1;
-      let darkestLum=2;
-      for(const [r,g,b] of logoPalette){
-        const lum=(0.299*r+0.587*g+0.114*b)/255;
-        if(lum>lightestLum){lightestLum=lum; lightestColor=[r,g,b];}
-        if(lum<darkestLum){darkestLum=lum; darkestColor=[r,g,b];}
-      }
-    }
+    const { accentColor, lightestColor, darkestColor, lightestLum } = deriveSportColors(img);
 
     // 1. Background + vignette
     sport.drawBg(ctx,W,H);
