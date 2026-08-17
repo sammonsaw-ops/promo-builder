@@ -37,6 +37,7 @@ const INSTRUCTIONS_CSS = `
   .tag { display:inline-block; background:var(--accent-light); color:var(--accent); border:1px solid var(--accent-mid); border-radius:4px; font-size:7pt; font-weight:700; padding:1px 6px; letter-spacing:0.04em; vertical-align:middle; }
   .tag.green { background:#f0fdf4; color:var(--success); border-color:#bbf7d0; }
   .tag.gold  { background:#fffbeb; color:var(--gold); border-color:#fde68a; }
+  .tag.violet{ background:#fdf4ff; color:#7c3aed; border-color:#e9d5ff; }
   .field-table { width:100%; border-collapse:collapse; margin-top:6px; }
   .field-table th { font-size:7pt; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:0.07em; padding:4px 8px; border-bottom:1.5px solid var(--gray-200); text-align:left; background:var(--gray-50); }
   .field-table td { font-size:8pt; padding:5px 8px; border-bottom:1px solid var(--gray-100); color:var(--gray-700); vertical-align:top; }
@@ -58,49 +59,57 @@ const INSTRUCTIONS_CSS = `
 `;
 
 // Localized text/HTML fragments for the instructions popup. Structure is
-// identical between languages; only the copy varies.
+// identical between languages; only the copy varies. The step numbering
+// matches the on-screen order of the left panel: 1 Language, 2 Promo
+// Details, 3 Banner Type, 4 Output Format.
 const INSTRUCTIONS_STRINGS = {
   en: {
     htmlLang: 'en',
     title: 'Promo Builder — Instructions for Use',
     h1: 'Promo Builder',
     subtitle: `Instructions for Use &nbsp;·&nbsp; by Sammons Creative`,
-    intro: `The <strong>Promo Builder</strong> lets you create professional, digital and print-ready raffle promotional banners in seconds — no design experience required. Follow the three steps on the left panel, then generate and download your banner. <strong>Nothing you enter is ever stored or uploaded</strong> — all processing happens in your browser.`,
-    step1Label: 'Banner Type',
+    intro: `The <strong>Promo Builder</strong> lets you create professional, digital and print-ready promotional banners in seconds — no design experience required. Follow the four steps on the left panel, then generate and download your banner. <strong>Nothing you enter is ever stored or uploaded</strong> — all processing happens in your browser.`,
+    step1Label: 'Select Language',
     step1Body: `
-      <p>Choose the style of banner you want to create:</p>
-      <p><strong>Standard <span class="tag">🎟️</span></strong> — A clean, versatile design suitable for any raffle or fundraiser.</p>
-      <p><strong>Sport <span class="tag">🏆</span></strong> — Adds a sport-themed graphic element (puck, ball, etc.) to the centre of the banner. After selecting Sport, choose your sport from the icon grid that appears below.</p>
-      <p style="margin-top:6px;font-size:7.5pt;color:var(--gray-400);">Available sports: Hockey, Soccer, Football, Baseball, Softball, Basketball, Water Polo, Volleyball, Ringette, Curling, Gymnastics, Golf, Figure Skating, Lacrosse, Rugby, Tennis, Swimming, AFL, and Wrestling/MMA.</p>`,
-    step2Label: 'Output Format',
+      <p>Two dropdowns at the top of the panel:</p>
+      <p><strong>Language</strong> — <em>English</em>, <em>Français</em>, or <em>Español</em>. Changing it switches every label, banner text, and dialog in the tool to that language.</p>
+      <p><strong>Promo Type</strong> — three options, always in the language you picked above:</p>
+      <p>&nbsp;&nbsp;<span class="tag green">50/50 Raffle</span> — winner takes 50% of ticket sales up to a maximum prize.</p>
+      <p>&nbsp;&nbsp;<span class="tag gold">Prize Raffle</span> — a fixed item or cash prize is awarded.</p>
+      <p>&nbsp;&nbsp;<span class="tag violet">Custom Text</span> — you provide your own headline and subheading, so the tool can be used for any marketing purpose (sales, events, announcements, etc.) — not just raffles.</p>`,
+    step2Label: 'Promo Details',
     step2Body: `
-      <p>Select the <strong>aspect ratio</strong> that matches where you plan to use the banner:</p>
-      <table class="field-table">
-        <thead><tr><th>Ratio</th><th>Best For</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">4:5</td><td>Instagram portrait posts</td></tr>
-          <tr><td class="field-name">1:1</td><td>Square social posts</td></tr>
-          <tr><td class="field-name">1.91:1</td><td>Facebook &amp; Twitter banners</td></tr>
-          <tr><td class="field-name">16:9</td><td>Widescreen / presentation slides</td></tr>
-          <tr><td class="field-name">9:16</td><td>Instagram/Facebook Stories, TikTok</td></tr>
-          <tr><td class="field-name">Letter <span class="tag gold">Print</span></td><td>Physical print poster — 8.5 × 11 in at 300 DPI. Renders with a 1/2-inch white border so it prints safely on any home or office printer. When QR Code is selected, two QR Codes appear — one in each lower corner for easy wall-mounted viewing.</td></tr>
-        </tbody>
-      </table>`,
-    step3Label: 'Raffle Details',
-    step3Body: `
       <p style="margin-bottom:8px;">Fill in the fields below to build your banner content. All fields are optional — only what you enter will appear on the banner.</p>
       <table class="field-table">
         <thead><tr><th style="width:30%">Field</th><th>What to Enter</th></tr></thead>
         <tbody>
           <tr><td class="field-name">Organization Name</td><td>Your team, club, or group name (e.g. <em>Northside Hockey Association</em>). Appears prominently on the banner.</td></tr>
-          <tr><td class="field-name">Raffle Type</td><td><span class="tag green">50/50 Raffle</span> — Winner takes 50% of ticket sales up to a maximum prize. &nbsp; <span class="tag gold">Prize Raffle</span> — A fixed item or cash prize is awarded. &nbsp; <span class="tag" style="background:#fdf4ff;color:#7c3aed;border-color:#e9d5ff;">Tirage moitié-moitié</span> / <span class="tag" style="background:#fdf4ff;color:#7c3aed;border-color:#e9d5ff;">Tirage de Prix</span> — French-language versions; selecting either will switch the entire interface to French.</td></tr>
-          <tr><td class="field-name">Team / Club Logo</td><td>Upload a PNG, JPG, or GIF logo. It will be placed on the banner. For best results use a high-resolution file with a <strong>transparent</strong> or white background. <span style="color:#b45309;font-weight:600;">⚠️ Do not use images with a baked-in checkerboard pattern</span> (see Image Tips below).</td></tr>
-          <tr><td class="field-name">Prize Image <span class="tag" style="font-size:6.5pt">Prize Raffle only</span></td><td>Optional photo of the prize. Appears only when <em>Prize Raffle</em> or <em>Tirage de Prix</em> is selected. For best results, use a PNG with a transparent or white background.</td></tr>
-          <tr><td class="field-name">Ticket Purchase URL</td><td>Paste a link to your online ticket sales page. The tool will automatically generate a <strong>QR code</strong> and place it in the corner of the banner.</td></tr>
-          <tr><td class="field-name">Include Detailed Info <span class="tag" style="font-size:6.5pt">Toggle</span></td><td>Click the toggle switch to reveal additional fields: Ticket Packages, Total Tickets Available, Maximum Possible Sales, Prize Description, Licence Number, Draw Date, Draw Time, and Draw Location. Enter only the details you wish to display. <strong>Note:</strong> When this toggle is turned on, the detailed information will be displayed inside the banner shape and will supersede any other content within that area — including a prize image.</td></tr>
-          <tr><td class="field-name">Ticket Packages</td><td>Enter one or more pricing tiers (e.g. <em>3 tickets for $10</em>). Click <strong>+ Add Package</strong> to add more rows.</td></tr>
-          <tr><td class="field-name">Draw Date &amp; Time</td><td>Select the date and time of the draw. Both fields are optional — omit either if not yet confirmed.</td></tr>
-          <tr><td class="field-name">Draw Location</td><td>Full address of where the draw will take place (e.g. <em>123 Arena Way, Cityville, AB T2P 1A1</em>).</td></tr>
+          <tr><td class="field-name">Team / Club Logo</td><td>Upload a PNG, JPG, or GIF. For best results use a high-resolution file with a <strong>transparent</strong> or white background. <span style="color:#b45309;font-weight:600;">⚠️ Do not use images with a baked-in checkerboard pattern</span> (see Image Tips below). When a logo is uploaded, the tool extracts a brand palette from it — click any swatch to fine-tune. When no logo is uploaded, use the two colour pickers to set your banner colours manually.</td></tr>
+          <tr><td class="field-name">Main Headline &amp; Subheading <span class="tag violet" style="font-size:6.5pt">Custom Text only</span></td><td>Shown only when <em>Custom Text</em> is selected as the Promo Type. Type the two lines you want on the banner (e.g. <em>FALL SALE</em> / <em>50% OFF</em>). The subheading is optional.</td></tr>
+          <tr><td class="field-name">Prize Image <span class="tag gold" style="font-size:6.5pt">Prize Raffle only</span></td><td>Optional photo of the prize. Appears only when <em>Prize Raffle</em> (or its French/Spanish equivalent) is selected.</td></tr>
+          <tr><td class="field-name">Ticket Purchase URL</td><td>Paste a link to your online ticket sales page. The tool auto-generates a <strong>QR code</strong> and places it in the corner of the banner.</td></tr>
+          <tr><td class="field-name">Include Detailed Info <span class="tag" style="font-size:6.5pt">Toggle</span></td><td>Toggle to reveal extra fields: Ticket Packages, Total Tickets Available, Maximum Possible Sales, Prize Description, Licence Number, Draw Date, Draw Time, Draw Location. Use only for jurisdictions that require disclosure — the warning notice below the toggle explains when. <strong>Note:</strong> when this toggle is on, the detailed information takes over the banner's shape and supersedes any prize image. <strong>Hidden entirely</strong> when Custom Text is selected as the Promo Type.</td></tr>
+        </tbody>
+      </table>`,
+    step3Label: 'Banner Type',
+    step3Body: `
+      <p>Choose the style of banner you want to create:</p>
+      <p><strong>Standard <span class="tag">🎟️</span></strong> — A clean, versatile design suitable for any promo or fundraiser.</p>
+      <p><strong>Sport <span class="tag">🏆</span></strong> — Adds a sport-themed graphic element (puck, ball, etc.) to the centre of the banner. After selecting Sport, choose your sport from the icon grid that appears below.</p>
+      <p style="margin-top:6px;font-size:7.5pt;color:var(--gray-400);">Available sports: Hockey, Soccer, Football, Baseball, Softball, Basketball, Water Polo, Volleyball, Ringette, Curling, Gymnastics, Golf, Figure Skating, Lacrosse, Rugby, Tennis, Swimming, AFL, Wrestling/MMA, Equestrian, Ultimate Frisbee, Fencing, Dance, Boxing, and Track &amp; Field.</p>`,
+    step4Label: 'Output Format',
+    step4Body: `
+      <p>Select the <strong>aspect ratio</strong> that matches where you plan to use the banner:</p>
+      <table class="field-table">
+        <thead><tr><th>Ratio</th><th>Best For</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">16:9</td><td>Facebook cover, widescreen banners, presentation slides — <em>default</em></td></tr>
+          <tr><td class="field-name">1:1</td><td>Square social posts (Instagram feed)</td></tr>
+          <tr><td class="field-name">4:5</td><td>Instagram portrait posts</td></tr>
+          <tr><td class="field-name">9:16</td><td>Instagram/Facebook Stories, Reels, TikTok</td></tr>
+          <tr><td class="field-name">1.91:1</td><td>Facebook &amp; LinkedIn ads</td></tr>
+          <tr><td class="field-name">Letter <span class="tag gold">Print</span></td><td>Physical print poster — 8.5 × 11 in at 300 DPI. Renders with a 1/2-inch white border so it prints safely on any home or office printer. When a QR Code is included, two QR Codes appear — one in each lower corner for easy wall-mounted viewing.</td></tr>
+          <tr><td class="field-name">Custom</td><td>Enter any width × height in pixels for other placements.</td></tr>
         </tbody>
       </table>`,
     tipImgH4: 'Image Tips',
@@ -112,6 +121,8 @@ const INSTRUCTIONS_STRINGS = {
     tipCheckerP2: `<strong>How to fix it:</strong> Open the original file in an image editor, ensure the background is truly transparent (you should see the checkerboard in the editor but it should <em>not</em> be part of the saved file), then export as a <strong>PNG with transparency</strong> enabled. Re-upload the corrected file.`,
     dlH3: 'Generating &amp; Downloading Your Banner',
     dlP: `Once you are satisfied with the preview, click the blue <strong>Generate Banner</strong> button at the bottom of the left panel. The banner will render in full resolution in the right panel. Click <strong>Download PNG</strong> to save the image to your device. The file is named automatically using your organization name, sport (if selected), and aspect ratio. Your downloaded PNG is also <strong>re-uploadable</strong> — see <em>Editing a Banner Later</em> below.`,
+    resetH4: 'Reset All Fields',
+    resetP: `Below the Generate Banner button is a <strong>Reset All Fields</strong> button. Clicking it prompts you to confirm before wiping everything — form fields, uploaded logo, palette, promo type, language, everything back to defaults. Use this when starting a completely different banner rather than editing your current one. The confirmation dialog protects against accidental clicks.`,
     reuseH4: 'Editing a Banner Later — Re-upload Your PNG',
     reuseP: `Every banner you download from this tool includes an invisible copy of the form data used to build it — every field, your uploaded logo, and your prize image (if any). If you need to change something later (for example, swapping <em>#:Pending</em> for your approved licence number, fixing a typo, or updating the draw date), you don't need to re-enter anything.
       <br><br>At the top of the left panel, use <strong>Continuing an earlier banner? — Upload PNG</strong> and select the PNG you originally downloaded. Every field, image, colour, and toggle is restored exactly as it was. Make your edits and re-generate.
@@ -121,44 +132,50 @@ const INSTRUCTIONS_STRINGS = {
   fr: {
     htmlLang: 'fr',
     title: `Générateur de bannières — Guide d'utilisation`,
-    h1: 'Générateur de bannières de tirage',
+    h1: 'Générateur de bannières promo',
     subtitle: `Guide d'utilisation &nbsp;·&nbsp; par Sammons Creative`,
-    intro: `Le <strong>Générateur de bannières de tirage</strong> vous permet de créer des bannières promotionnelles professionnelles — prêtes pour le numérique et l'impression — en quelques secondes, sans aucune expérience en conception graphique. Suivez les trois étapes du panneau de gauche, puis générez et téléchargez votre bannière. <strong>Aucune information que vous saisissez n'est jamais stockée ni téléversée</strong> — tout le traitement se fait dans votre navigateur.`,
-    step1Label: 'Type de bannière',
+    intro: `Le <strong>Générateur de bannières promo</strong> vous permet de créer des bannières promotionnelles professionnelles — prêtes pour le numérique et l'impression — en quelques secondes, sans aucune expérience en conception graphique. Suivez les quatre étapes du panneau de gauche, puis générez et téléchargez votre bannière. <strong>Aucune information que vous saisissez n'est jamais stockée ni téléversée</strong> — tout le traitement se fait dans votre navigateur.`,
+    step1Label: 'Choisir la langue',
     step1Body: `
-      <p>Choisissez le style de bannière que vous souhaitez créer :</p>
-      <p><strong>Standard <span class="tag">🎟️</span></strong> — Un design épuré et polyvalent, adapté à tout tirage ou collecte de fonds.</p>
-      <p><strong>Sport <span class="tag">🏆</span></strong> — Ajoute un élément graphique thématique (rondelle, ballon, etc.) au centre de la bannière. Après avoir sélectionné Sport, choisissez votre sport dans la grille d'icônes qui apparaît.</p>
-      <p style="margin-top:6px;font-size:7.5pt;color:var(--gray-400);">Sports disponibles : Hockey, Soccer, Football, Baseball, Softball, Basketball, Water-polo, Volleyball, Ringette, Curling, Gymnastique, Golf, Patinage artistique, Crosse, Rugby, Tennis, Natation, AFL, Lutte/AMM et plus.</p>`,
-    step2Label: 'Format de sortie',
+      <p>Deux menus déroulants en haut du panneau :</p>
+      <p><strong>Langue</strong> — <em>English</em>, <em>Français</em> ou <em>Español</em>. Changer la langue bascule toutes les étiquettes, textes de bannière et messages de l'outil dans cette langue.</p>
+      <p><strong>Type de promo</strong> — trois options, toujours dans la langue choisie ci-dessus :</p>
+      <p>&nbsp;&nbsp;<span class="tag green">Tirage moitié-moitié</span> — le gagnant reçoit 50 % des ventes de billets jusqu'à un prix maximum.</p>
+      <p>&nbsp;&nbsp;<span class="tag gold">Tirage de Prix</span> — un article ou un montant en argent fixe est attribué.</p>
+      <p>&nbsp;&nbsp;<span class="tag violet">Personnalisé</span> — vous fournissez votre propre titre et sous-titre, ce qui permet d'utiliser l'outil pour tout usage marketing (soldes, événements, annonces, etc.) — pas seulement les tirages.</p>`,
+    step2Label: 'Détails de la promo',
     step2Body: `
-      <p>Sélectionnez le <strong>format d'image</strong> qui correspond à l'utilisation prévue de la bannière :</p>
-      <table class="field-table">
-        <thead><tr><th>Format</th><th>Idéal pour</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">4:5</td><td>Publications portrait sur Instagram</td></tr>
-          <tr><td class="field-name">1:1</td><td>Publications carrées sur les réseaux sociaux</td></tr>
-          <tr><td class="field-name">1.91:1</td><td>Bannières Facebook et LinkedIn</td></tr>
-          <tr><td class="field-name">16:9</td><td>Écran large / diaporamas</td></tr>
-          <tr><td class="field-name">9:16</td><td>Stories Instagram/Facebook, TikTok</td></tr>
-          <tr><td class="field-name">Letter <span class="tag gold">Impression</span></td><td>Affiche imprimée — 8,5 × 11 po à 300 DPI. Générée avec une bordure blanche de 1/2 po pour une impression sécurisée sur toute imprimante. Avec un code QR, deux codes apparaissent — un dans chaque coin inférieur.</td></tr>
-        </tbody>
-      </table>`,
-    step3Label: 'Détails du tirage',
-    step3Body: `
       <p style="margin-bottom:8px;">Remplissez les champs ci-dessous pour construire le contenu de votre bannière. Tous les champs sont facultatifs — seul ce que vous saisissez apparaîtra sur la bannière.</p>
       <table class="field-table">
         <thead><tr><th style="width:32%">Champ</th><th>Quoi saisir</th></tr></thead>
         <tbody>
           <tr><td class="field-name">Nom de l'organisme</td><td>Le nom de votre équipe, club ou groupe (ex. : <em>Association de hockey Northside</em>). Apparaît en évidence sur la bannière.</td></tr>
-          <tr><td class="field-name">Type de tirage</td><td><span class="tag green">Tirage moitié-moitié</span> — Le gagnant reçoit 50 % des ventes de billets. &nbsp; <span class="tag gold">Tirage de Prix</span> — Un article ou un montant en argent fixe est attribué comme prix.</td></tr>
-          <tr><td class="field-name">Logo de l'équipe / club</td><td>Téléversez un logo PNG, JPG ou GIF. Il sera placé sur la bannière. Pour de meilleurs résultats, utilisez un fichier haute résolution avec un fond <strong>transparent</strong> ou blanc. <span style="color:#b45309;font-weight:600;">⚠️ N'utilisez pas d'images avec un fond en damier intégré</span> (voir la section Conseils sur les images ci-dessous).</td></tr>
-          <tr><td class="field-name">Image du prix <span class="tag" style="font-size:6.5pt">Tirage de Prix seul.</span></td><td>Photo optionnelle du prix (voiture, forfait voyage, etc.). Apparaît uniquement lorsque <em>Tirage de Prix</em> est sélectionné. Pour de meilleurs résultats, utilisez un PNG avec un fond transparent ou blanc.</td></tr>
-          <tr><td class="field-name">URL d'achat de billets</td><td>Collez un lien vers votre page de vente de billets en ligne. L'outil générera automatiquement un <strong>code QR</strong> et le placera dans le coin de la bannière.</td></tr>
-          <tr><td class="field-name">Inclure les informations détaillées <span class="tag" style="font-size:6.5pt">Bouton</span></td><td>Cliquez sur le bouton pour afficher les champs supplémentaires : Forfaits de billets, Total de billets disponibles, Ventes maximales possibles, Description du prix, Numéro de licence, Date du tirage, Heure du tirage et Lieu du tirage. Saisissez uniquement les détails que vous souhaitez afficher. <strong>Remarque :</strong> Lorsque ce bouton est activé, les informations détaillées s'affichent à l'intérieur de la forme de la bannière et remplacent tout autre contenu dans cette zone — y compris une image du prix.</td></tr>
-          <tr><td class="field-name">Forfaits de billets</td><td>Entrez une ou plusieurs tranches de prix (ex. : <em>3 billets pour 10 $</em>). Cliquez sur <strong>+ Ajouter un forfait</strong> pour ajouter des rangées.</td></tr>
-          <tr><td class="field-name">Date et heure du tirage</td><td>Sélectionnez la date et l'heure du tirage. Les deux champs sont facultatifs.</td></tr>
-          <tr><td class="field-name">Lieu du tirage</td><td>Adresse complète où se déroulera le tirage (ex. : <em>123, rue de l'Aréna, Villeville, QC H2X 1A1</em>).</td></tr>
+          <tr><td class="field-name">Logo de l'équipe / club</td><td>Téléversez un PNG, JPG ou GIF. Pour de meilleurs résultats, utilisez un fichier haute résolution avec un fond <strong>transparent</strong> ou blanc. <span style="color:#b45309;font-weight:600;">⚠️ N'utilisez pas d'images avec un fond en damier intégré</span>. Lorsqu'un logo est téléversé, l'outil en extrait une palette de marque — cliquez sur n'importe quelle pastille pour ajuster. Sans logo, utilisez les deux sélecteurs de couleur pour définir manuellement les couleurs de la bannière.</td></tr>
+          <tr><td class="field-name">Titre principal et sous-titre <span class="tag violet" style="font-size:6.5pt">Personnalisé seul.</span></td><td>Affichés uniquement lorsque <em>Personnalisé</em> est sélectionné comme type de promo. Saisissez les deux lignes que vous souhaitez sur la bannière (ex. : <em>SOLDE D'AUTOMNE</em> / <em>50 % DE RABAIS</em>). Le sous-titre est facultatif.</p></td></tr>
+          <tr><td class="field-name">Image du prix <span class="tag gold" style="font-size:6.5pt">Tirage de Prix seul.</span></td><td>Photo optionnelle du prix. Apparaît uniquement lorsque <em>Tirage de Prix</em> est sélectionné.</td></tr>
+          <tr><td class="field-name">URL d'achat de billets</td><td>Collez un lien vers votre page de vente en ligne. L'outil générera automatiquement un <strong>code QR</strong> et le placera dans le coin de la bannière.</td></tr>
+          <tr><td class="field-name">Inclure les informations détaillées <span class="tag" style="font-size:6.5pt">Bouton</span></td><td>Activez pour afficher les champs supplémentaires : Forfaits de billets, Total de billets, Ventes maximales, Description du prix, Numéro de licence, Date/heure du tirage et Lieu du tirage. Utilisez uniquement pour les juridictions qui exigent une divulgation — l'avertissement sous le bouton l'explique. <strong>Remarque :</strong> lorsque ce bouton est activé, les informations détaillées occupent la forme de la bannière et remplacent toute image du prix. <strong>Complètement masqué</strong> lorsque Personnalisé est sélectionné comme type de promo.</td></tr>
+        </tbody>
+      </table>`,
+    step3Label: 'Type de bannière',
+    step3Body: `
+      <p>Choisissez le style de bannière que vous souhaitez créer :</p>
+      <p><strong>Standard <span class="tag">🎟️</span></strong> — Un design épuré et polyvalent, adapté à toute promo ou collecte de fonds.</p>
+      <p><strong>Sport <span class="tag">🏆</span></strong> — Ajoute un élément graphique thématique (rondelle, ballon, etc.) au centre de la bannière. Après avoir sélectionné Sport, choisissez votre sport dans la grille d'icônes qui apparaît.</p>
+      <p style="margin-top:6px;font-size:7.5pt;color:var(--gray-400);">Sports disponibles : Hockey, Soccer, Football, Baseball, Softball, Basketball, Water-polo, Volleyball, Ringette, Curling, Gymnastique, Golf, Patinage artistique, Crosse, Rugby, Tennis, Natation, AFL, Lutte/AMM, Équitation, Frisbee ultime, Escrime, Danse, Boxe et Athlétisme.</p>`,
+    step4Label: 'Format de sortie',
+    step4Body: `
+      <p>Sélectionnez le <strong>format d'image</strong> qui correspond à l'utilisation prévue de la bannière :</p>
+      <table class="field-table">
+        <thead><tr><th>Format</th><th>Idéal pour</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">16:9</td><td>Couverture Facebook, bannières écran large, diaporamas — <em>par défaut</em></td></tr>
+          <tr><td class="field-name">1:1</td><td>Publications carrées sur les réseaux sociaux (Instagram)</td></tr>
+          <tr><td class="field-name">4:5</td><td>Publications portrait sur Instagram</td></tr>
+          <tr><td class="field-name">9:16</td><td>Stories Instagram/Facebook, Reels, TikTok</td></tr>
+          <tr><td class="field-name">1.91:1</td><td>Pubs Facebook et LinkedIn</td></tr>
+          <tr><td class="field-name">Letter <span class="tag gold">Impression</span></td><td>Affiche imprimée — 8,5 × 11 po à 300 DPI. Générée avec une bordure blanche de 1/2 po. Avec un code QR, deux codes apparaissent — un dans chaque coin inférieur.</td></tr>
+          <tr><td class="field-name">Personnalisé</td><td>Entrez toute largeur × hauteur en pixels pour d'autres emplacements.</td></tr>
         </tbody>
       </table>`,
     tipImgH4: 'Conseils sur les images',
@@ -170,6 +187,8 @@ const INSTRUCTIONS_STRINGS = {
     tipCheckerP2: `<strong>Comment corriger :</strong> Ouvrez le fichier original dans un éditeur d'images, assurez-vous que le fond est véritablement transparent (vous devriez voir le damier dans l'éditeur mais il ne devrait <em>pas</em> faire partie du fichier enregistré), puis exportez en tant que <strong>PNG avec transparence</strong> activée. Retéléversez le fichier corrigé.`,
     dlH3: 'Générer et télécharger votre bannière',
     dlP: `Lorsque vous êtes satisfait de l'aperçu, cliquez sur le bouton bleu <strong>Générer la bannière</strong> en bas du panneau de gauche. La bannière s'affichera en pleine résolution dans le panneau de droite. Cliquez sur <strong>Télécharger PNG</strong> pour enregistrer l'image sur votre appareil. Le fichier est nommé automatiquement selon le nom de votre organisme, le sport (si sélectionné) et le format d'image. Le PNG téléchargé est également <strong>réimportable</strong> — voir <em>Modifier une bannière plus tard</em> ci-dessous.`,
+    resetH4: 'Tout réinitialiser',
+    resetP: `Sous le bouton Générer la bannière se trouve un bouton <strong>Tout réinitialiser</strong>. Un clic ouvre un dialogue de confirmation avant de tout effacer — champs, logo, palette, type de promo, langue, tout revient aux valeurs par défaut. Utilisez-le pour recommencer une bannière complètement différente plutôt que pour modifier la bannière actuelle. Le dialogue vous protège contre les clics accidentels.`,
     reuseH4: 'Modifier une bannière plus tard — Réimporter votre PNG',
     reuseP: `Chaque bannière téléchargée depuis cet outil contient une copie invisible des données du formulaire ayant servi à la créer — chaque champ, votre logo téléversé, et l'image du prix (le cas échéant). Si vous devez modifier un détail plus tard (par exemple, remplacer <em>#:En attente</em> par votre numéro de licence approuvé, corriger une faute de frappe ou mettre à jour la date du tirage), il n'est pas nécessaire de tout ressaisir.
       <br><br>En haut du panneau de gauche, utilisez <strong>Vous continuez une bannière précédente ? — Téléverser un PNG</strong> et sélectionnez le PNG que vous aviez téléchargé. Chaque champ, image, couleur et bouton sera restauré exactement comme auparavant. Faites vos modifications et régénérez.
@@ -181,42 +200,48 @@ const INSTRUCTIONS_STRINGS = {
     title: 'Promo Builder — Guía de uso',
     h1: 'Promo Builder',
     subtitle: `Guía de uso &nbsp;·&nbsp; por Sammons Creative`,
-    intro: `El <strong>Promo Builder</strong> le permite crear en segundos banderas promocionales profesionales de rifa —digitales y listas para imprimir— sin experiencia en diseño. Siga los tres pasos del panel izquierdo, luego genere y descargue su bandera. <strong>Nada de lo que ingresa se almacena ni se sube a un servidor</strong> — todo el procesamiento ocurre en su navegador.`,
-    step1Label: 'Tipo de bandera',
+    intro: `El <strong>Promo Builder</strong> le permite crear en segundos banderas promocionales profesionales —digitales y listas para imprimir— sin experiencia en diseño. Siga los cuatro pasos del panel izquierdo, luego genere y descargue su bandera. <strong>Nada de lo que ingresa se almacena ni se sube a un servidor</strong> — todo el procesamiento ocurre en su navegador.`,
+    step1Label: 'Elegir el idioma',
     step1Body: `
-      <p>Elija el estilo de bandera que desea crear:</p>
-      <p><strong>Estándar <span class="tag">🎟️</span></strong> — Un diseño limpio y versátil, adecuado para cualquier rifa o recaudación de fondos.</p>
-      <p><strong>Deporte <span class="tag">🏆</span></strong> — Añade un elemento gráfico temático (puck, balón, etc.) al centro de la bandera. Después de seleccionar Deporte, elija su disciplina en la cuadrícula de íconos que aparece a continuación.</p>
-      <p style="margin-top:6px;font-size:7.5pt;color:var(--gray-400);">Deportes disponibles: Hockey, Fútbol, Fútbol americano, Béisbol, Sóftbol, Baloncesto, Waterpolo, Voleibol, Ringette, Curling, Gimnasia, Golf, Patinaje artístico, Lacrosse, Rugby, Tenis, Natación, AFL y Lucha/AMM.</p>`,
-    step2Label: 'Formato de salida',
+      <p>Dos menús desplegables en la parte superior del panel:</p>
+      <p><strong>Idioma</strong> — <em>English</em>, <em>Français</em> o <em>Español</em>. Cambiarlo alterna todas las etiquetas, textos de bandera y diálogos de la herramienta a ese idioma.</p>
+      <p><strong>Tipo de promo</strong> — tres opciones, siempre en el idioma que eligió arriba:</p>
+      <p>&nbsp;&nbsp;<span class="tag green">Rifa 50/50</span> — el ganador recibe el 50 % de las ventas de boletos hasta un premio máximo.</p>
+      <p>&nbsp;&nbsp;<span class="tag gold">Rifa con Premio</span> — se otorga un artículo o premio en efectivo fijo.</p>
+      <p>&nbsp;&nbsp;<span class="tag violet">Personalizado</span> — usted proporciona su propio titular y subtítulo, para que la herramienta se pueda usar con cualquier fin de marketing (ofertas, eventos, anuncios, etc.) — no solo rifas.</p>`,
+    step2Label: 'Detalles de la promo',
     step2Body: `
-      <p>Seleccione la <strong>proporción</strong> que corresponda al lugar donde usará la bandera:</p>
-      <table class="field-table">
-        <thead><tr><th>Proporción</th><th>Ideal para</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">4:5</td><td>Publicaciones verticales en Instagram</td></tr>
-          <tr><td class="field-name">1:1</td><td>Publicaciones cuadradas en redes</td></tr>
-          <tr><td class="field-name">1.91:1</td><td>Banners de Facebook y Twitter</td></tr>
-          <tr><td class="field-name">16:9</td><td>Pantalla ancha / diapositivas</td></tr>
-          <tr><td class="field-name">9:16</td><td>Stories de Instagram/Facebook, TikTok</td></tr>
-          <tr><td class="field-name">Letter <span class="tag gold">Imprimir</span></td><td>Cartel para imprimir — 8.5 × 11 pulgadas a 300 DPI. Se genera con un margen blanco de 1/2 pulgada para imprimir con seguridad en cualquier impresora. Con Código QR seleccionado, aparecen dos códigos QR — uno en cada esquina inferior para verlos fácilmente al colgar el cartel.</td></tr>
-        </tbody>
-      </table>`,
-    step3Label: 'Detalles de la rifa',
-    step3Body: `
       <p style="margin-bottom:8px;">Llene los campos a continuación para construir el contenido de su bandera. Todos los campos son opcionales — solo aparecerá lo que usted ingrese.</p>
       <table class="field-table">
         <thead><tr><th style="width:30%">Campo</th><th>Qué ingresar</th></tr></thead>
         <tbody>
           <tr><td class="field-name">Nombre de la organización</td><td>El nombre de su equipo, club o grupo (ej.: <em>Asociación de Hockey Northside</em>). Aparece de forma destacada en la bandera.</td></tr>
-          <tr><td class="field-name">Tipo de rifa</td><td><span class="tag green">Rifa 50/50</span> — El ganador recibe el 50 % de las ventas de boletos hasta un premio máximo. &nbsp; <span class="tag gold">Rifa con Premio</span> — Se otorga un artículo o premio en efectivo fijo. &nbsp; Los tipos en francés (<em>Tirage</em>) cambian toda la interfaz al francés; los tipos en español (<em>Rifa</em>) la cambian al español.</td></tr>
-          <tr><td class="field-name">Logo del equipo / club</td><td>Suba un logo en PNG, JPG o GIF. Se colocará en la bandera. Para mejores resultados, use un archivo de alta resolución con fondo <strong>transparente</strong> o blanco. <span style="color:#b45309;font-weight:600;">⚠️ No use imágenes con un patrón de damero integrado</span> (vea Consejos de imagen abajo).</td></tr>
-          <tr><td class="field-name">Imagen del premio <span class="tag" style="font-size:6.5pt">Solo Rifa con Premio</span></td><td>Foto opcional del premio. Aparece solo cuando se selecciona <em>Rifa con Premio</em>. Para mejores resultados, use un PNG con fondo transparente o blanco.</td></tr>
+          <tr><td class="field-name">Logo del equipo / club</td><td>Suba un PNG, JPG o GIF. Para mejores resultados, use un archivo de alta resolución con fondo <strong>transparente</strong> o blanco. <span style="color:#b45309;font-weight:600;">⚠️ No use imágenes con un patrón de damero integrado</span>. Cuando sube un logo, la herramienta extrae una paleta de marca — haga clic en cualquier muestra para ajustar. Sin logo, use los dos selectores de color para definir manualmente los colores de la bandera.</td></tr>
+          <tr><td class="field-name">Titular principal y subtítulo <span class="tag violet" style="font-size:6.5pt">Solo Personalizado</span></td><td>Se muestran solo cuando <em>Personalizado</em> está seleccionado como tipo de promo. Escriba las dos líneas que quiere en la bandera (ej.: <em>OFERTA DE OTOÑO</em> / <em>50% DE DESCUENTO</em>). El subtítulo es opcional.</td></tr>
+          <tr><td class="field-name">Imagen del premio <span class="tag gold" style="font-size:6.5pt">Solo Rifa con Premio</span></td><td>Foto opcional del premio. Aparece solo cuando se selecciona <em>Rifa con Premio</em>.</td></tr>
           <tr><td class="field-name">URL de compra de boletos</td><td>Pegue un enlace a su página en línea de venta de boletos. La herramienta generará automáticamente un <strong>código QR</strong> y lo colocará en la esquina de la bandera.</td></tr>
-          <tr><td class="field-name">Incluir información detallada <span class="tag" style="font-size:6.5pt">Interruptor</span></td><td>Haga clic en el interruptor para revelar campos adicionales: Paquetes de boletos, Total de boletos disponibles, Ventas máximas posibles, Descripción del premio, Número de licencia, Fecha del sorteo, Hora del sorteo y Lugar del sorteo. Ingrese solo los detalles que quiera mostrar. <strong>Nota:</strong> Al activar este interruptor, la información detallada se muestra dentro de la forma de la bandera y reemplaza cualquier otro contenido en esa zona — incluida una imagen del premio.</td></tr>
-          <tr><td class="field-name">Paquetes de boletos</td><td>Ingrese uno o más niveles de precio (ej.: <em>3 boletos por $10</em>). Haga clic en <strong>+ Añadir paquete</strong> para agregar más filas.</td></tr>
-          <tr><td class="field-name">Fecha y hora del sorteo</td><td>Seleccione la fecha y la hora del sorteo. Ambos campos son opcionales — omita cualquiera si aún no está confirmado.</td></tr>
-          <tr><td class="field-name">Lugar del sorteo</td><td>Dirección completa de dónde se realizará el sorteo (ej.: <em>123 Arena Way, Cityville, AB T2P 1A1</em>).</td></tr>
+          <tr><td class="field-name">Incluir información detallada <span class="tag" style="font-size:6.5pt">Interruptor</span></td><td>Actívelo para revelar campos adicionales: Paquetes de boletos, Total de boletos, Ventas máximas, Descripción del premio, Número de licencia, Fecha/hora del sorteo y Lugar del sorteo. Úselo solo en jurisdicciones que exijan divulgación — el aviso debajo del interruptor lo explica. <strong>Nota:</strong> al activar este interruptor, la información detallada ocupa la forma de la bandera y reemplaza cualquier imagen del premio. <strong>Completamente oculto</strong> cuando Personalizado está seleccionado como tipo de promo.</td></tr>
+        </tbody>
+      </table>`,
+    step3Label: 'Tipo de bandera',
+    step3Body: `
+      <p>Elija el estilo de bandera que desea crear:</p>
+      <p><strong>Estándar <span class="tag">🎟️</span></strong> — Un diseño limpio y versátil, adecuado para cualquier promo o recaudación de fondos.</p>
+      <p><strong>Deporte <span class="tag">🏆</span></strong> — Añade un elemento gráfico temático (puck, balón, etc.) al centro de la bandera. Después de seleccionar Deporte, elija su disciplina en la cuadrícula de íconos que aparece a continuación.</p>
+      <p style="margin-top:6px;font-size:7.5pt;color:var(--gray-400);">Deportes disponibles: Hockey, Fútbol, Fútbol americano, Béisbol, Sóftbol, Baloncesto, Waterpolo, Voleibol, Ringette, Curling, Gimnasia, Golf, Patinaje artístico, Lacrosse, Rugby, Tenis, Natación, AFL, Lucha/AMM, Ecuestre, Ultimate, Esgrima, Baile, Boxeo y Atletismo.</p>`,
+    step4Label: 'Formato de salida',
+    step4Body: `
+      <p>Seleccione la <strong>proporción</strong> que corresponda al lugar donde usará la bandera:</p>
+      <table class="field-table">
+        <thead><tr><th>Proporción</th><th>Ideal para</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">16:9</td><td>Portada de Facebook, banners de pantalla ancha, diapositivas — <em>predeterminado</em></td></tr>
+          <tr><td class="field-name">1:1</td><td>Publicaciones cuadradas en redes (Instagram)</td></tr>
+          <tr><td class="field-name">4:5</td><td>Publicaciones verticales en Instagram</td></tr>
+          <tr><td class="field-name">9:16</td><td>Stories de Instagram/Facebook, Reels, TikTok</td></tr>
+          <tr><td class="field-name">1.91:1</td><td>Anuncios de Facebook y LinkedIn</td></tr>
+          <tr><td class="field-name">Letter <span class="tag gold">Imprimir</span></td><td>Cartel para imprimir — 8.5 × 11 pulgadas a 300 DPI. Se genera con un margen blanco de 1/2 pulgada. Con Código QR, aparecen dos códigos — uno en cada esquina inferior.</td></tr>
+          <tr><td class="field-name">Personalizado</td><td>Ingrese cualquier ancho × alto en píxeles para otros usos.</td></tr>
         </tbody>
       </table>`,
     tipImgH4: 'Consejos de imagen',
@@ -228,6 +253,8 @@ const INSTRUCTIONS_STRINGS = {
     tipCheckerP2: `<strong>Cómo corregirlo:</strong> Abra el archivo original en un editor de imagen, asegúrese de que el fondo sea verdaderamente transparente (debe ver el damero en el editor pero <em>no</em> debe formar parte del archivo guardado), luego expórtelo como <strong>PNG con transparencia</strong> activada. Vuelva a subir el archivo corregido.`,
     dlH3: 'Generar y descargar su bandera',
     dlP: `Cuando esté satisfecho con la vista previa, haga clic en el botón azul <strong>Generar bandera</strong> al pie del panel izquierdo. La bandera se generará en resolución completa en el panel derecho. Haga clic en <strong>Descargar PNG</strong> para guardar la imagen en su dispositivo. El archivo se nombra automáticamente con el nombre de su organización, el deporte (si se seleccionó) y la proporción. Su PNG descargado también es <strong>reeditable</strong> — vea <em>Editar una bandera después</em> a continuación.`,
+    resetH4: 'Restablecer todo',
+    resetP: `Debajo del botón Generar bandera hay un botón <strong>Restablecer todo</strong>. Al hacer clic, aparece un diálogo de confirmación antes de borrar todo — campos, logo, paleta, tipo de promo, idioma, todo vuelve a los valores predeterminados. Úselo cuando quiera empezar una bandera completamente distinta en lugar de editar la actual. El diálogo lo protege contra clics accidentales.`,
     reuseH4: 'Editar una bandera después — Vuelva a subir su PNG',
     reuseP: `Cada bandera que descarga de esta herramienta incluye una copia invisible de los datos del formulario usados para construirla — cada campo, su logo subido y la imagen del premio (si aplica). Si necesita cambiar algo después (por ejemplo, reemplazar <em>#:Pendiente</em> por su número de licencia aprobado, corregir un error tipográfico o actualizar la fecha del sorteo), no necesita volver a ingresar nada.
       <br><br>En la parte superior del panel izquierdo, use <strong>¿Continuando una bandera anterior? — Subir PNG</strong> y seleccione el PNG que descargó originalmente. Cada campo, imagen, color e interruptor se restaura exactamente como estaba. Haga sus cambios y vuelva a generar.
@@ -260,17 +287,21 @@ function renderInstructionsDoc(lang) {
   </div>
   <div class="intro">${S.intro}</div>
   <div class="steps-grid">
-    <div class="step">
+    <div class="step full">
       <div class="step-head"><div class="step-num">1</div><span class="step-label">${S.step1Label}</span></div>
       <div class="step-body">${S.step1Body}</div>
     </div>
-    <div class="step">
+    <div class="step full">
       <div class="step-head"><div class="step-num">2</div><span class="step-label">${S.step2Label}</span></div>
       <div class="step-body">${S.step2Body}</div>
     </div>
-    <div class="step full">
+    <div class="step">
       <div class="step-head"><div class="step-num">3</div><span class="step-label">${S.step3Label}</span></div>
       <div class="step-body">${S.step3Body}</div>
+    </div>
+    <div class="step">
+      <div class="step-head"><div class="step-num">4</div><span class="step-label">${S.step4Label}</span></div>
+      <div class="step-body">${S.step4Body}</div>
     </div>
   </div>
   <div class="tips-row">
@@ -313,6 +344,13 @@ function renderInstructionsDoc(lang) {
     <div>
       <h3>${S.dlH3}</h3>
       <p>${S.dlP}</p>
+    </div>
+  </div>
+  <div class="dl-section" style="background:linear-gradient(135deg,#fef2f2 0%,#fff1f2 100%);border-color:#fecaca;">
+    <div class="dl-icon">↺</div>
+    <div>
+      <h3>${S.resetH4}</h3>
+      <p>${S.resetP}</p>
     </div>
   </div>
   <div class="dl-section" style="background:linear-gradient(135deg,#fef3c7 0%,#fef9c3 100%);border-color:#fde68a;">

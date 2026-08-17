@@ -103,6 +103,34 @@ body { font-family:var(--font); background:var(--gray-100); color:var(--gray-900
 .mode-btn.active { border-color:var(--accent); background:var(--accent-light); color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.08); }
 .mode-btn .mode-icon { font-size:1.1rem; }
 
+/* Step 1 uses standard <select> elements from the base form styling — no
+   custom switcher CSS needed. Section-ordering utility below keeps the
+   Promo Details block visible as the second step. */
+
+/* ── STEP SECTION ORDERING (visual reorder without moving DOM) ──── */
+.controls-inner { display:flex; flex-direction:column; }
+
+/* ── RESET BUTTON (footer) ─────────────────────────────────────────
+   Sits under the primary Generate CTA. Text-only (no icon) so the label
+   is truly centered — with an icon, `justify-content:center` centers the
+   icon+text group, which visually offsets the text. Full-width to match
+   the Generate button; generous padding + a clear gap keep it from
+   feeling attached to the CTA above. Secondary weight to signal that
+   it's a destructive/rescue action, not a primary one. */
+.btn-reset {
+  display:flex; align-items:center; justify-content:center;
+  margin-top:35px;   /* Clear empty band between Generate and Reset — they
+                        should not read as a pair */
+  width:100%; height:44px; padding:0 20px;
+  border:1.5px solid var(--gray-300); border-radius:8px;
+  background:var(--white); color:var(--gray-500);
+  font-family:var(--font); font-size:0.75rem; font-weight:600;
+  letter-spacing:0.06em; text-transform:uppercase;
+  cursor:pointer; transition:all .18s;
+}
+.btn-reset:hover { border-color:#dc2626; color:#dc2626; background:#fef2f2; }
+.btn-reset:active { transform:translateY(1px); }
+
 /* ── SPORT GRID ──────────────────────────────────────────────────── */
 .sport-selector { display:none; margin-top:14px; }
 .sport-selector.visible { display:block; }
@@ -1112,6 +1140,32 @@ select:focus-visible {
 @media (max-width: 640px) {
   .pb-toast-region { left: 12px; right: 12px; max-width: none; }
   .pb-dialog { max-width: 100%; }
+}
+
+/* ── MOBILE HEADER (progressive shrinking) ──────────────────────
+   The header lays out four flex items in a single row: logo,
+   divider, product name+sub, Instructions button. On narrow screens
+   the total content width exceeds the viewport, pushing the
+   Instructions button off the right edge (users saw only "Ins…").
+   Shrink non-essential items first, then the product sub-line, then
+   the button label — the button icon still shows and its aria-label
+   keeps it accessible. */
+@media (max-width: 720px) {
+  :root { --header-h: 60px; }
+  .app-header { padding:0 14px; }
+  .header-logo img { height:40px; }
+  #headerReturnLink { display:none; }
+  .header-divider { margin:0 12px; height:24px; }
+  .header-product-name { font-size:0.9rem; }
+  .header-product-sub  { font-size:0.6rem; }
+}
+@media (max-width: 480px) {
+  .app-header { padding:0 10px; }
+  .header-divider { display:none; }
+  .header-product-sub { display:none; }
+  .header-product-name { font-size:0.82rem; }
+  .header-right button { padding:6px 10px; }
+  .header-right button #instructionsLabel { display:none; }
 }
 
 /* ── HIGH-CONTRAST / FORCED COLORS (Windows accessibility) ──────── */

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Promo Builder — by Sammons Creative</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260816c">
 </head>
 <body>
 
@@ -60,37 +60,42 @@
           <input type="file" id="restoreFileInput" accept="image/png" onchange="restoreFromPng(this)" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
         </div>
 
-        <!-- STEP 1: Raffle Type (also selects language) -->
-        <div class="step-section">
+        <!-- STEP 1: Select Language + Promo Type (order:1) -->
+        <div class="step-section" style="order:1;">
           <div class="step-header">
             <div class="step-num">1</div>
-            <span class="step-title" id="step0Title">Raffle Type</span>
+            <span class="step-title" id="step0Title">Select Language</span>
           </div>
           <div class="step-body">
             <div class="form-group">
-              <label class="field-label" id="labelRaffleType">Raffle Type</label>
-              <select id="raffleType" data-autopreview onchange="togglePrizeImage()">
-                <option value="5050">50/50 Raffle</option>
-                <option value="prize">Prize Raffle</option>
-                <option value="tirage5050">Tirage moitié-moitié</option>
-                <option value="tirage">Tirage de Prix</option>
-                <option value="es5050">Rifa 50/50</option>
-                <option value="esrifa">Rifa con Premio</option>
+              <label class="field-label" id="labelSelectLang">Language</label>
+              <select id="languageSelector" onchange="setLanguage(this.value)">
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
               </select>
             </div>
-            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;padding:9px 12px;margin-top:12px;display:flex;gap:8px;align-items:flex-start;">
-              <span style="font-size:1rem;flex-shrink:0;margin-top:1px;">🌐</span>
-              <p style="font-size:0.72rem;color:#166534;line-height:1.5;margin:0;font-weight:500;" id="langNotice">
-                <strong>Language is set here.</strong> Selecting a French raffle type (<em>Tirage moitié-moitié</em> or <em>Tirage de Prix</em>) will switch the entire interface and banner output to French. Selecting a Spanish raffle type (<em>Rifa 50/50</em> or <em>Rifa con Premio</em>) will switch it to Spanish.
-              </p>
+            <div class="form-group" style="margin-top:12px;">
+              <label class="field-label" id="labelRaffleType">Promo Type</label>
+              <select id="raffleType" data-autopreview onchange="togglePrizeImage()">
+                <option value="5050"       data-lang="en">50/50 Raffle</option>
+                <option value="prize"      data-lang="en">Prize Raffle</option>
+                <option value="custom"     data-lang="en">Custom Text</option>
+                <option value="tirage5050" data-lang="fr">Tirage moitié-moitié</option>
+                <option value="tirage"     data-lang="fr">Tirage de Prix</option>
+                <option value="custom_fr"  data-lang="fr">Personnalisé</option>
+                <option value="es5050"     data-lang="es">Rifa 50/50</option>
+                <option value="esrifa"     data-lang="es">Rifa con Premio</option>
+                <option value="custom_es"  data-lang="es">Personalizado</option>
+              </select>
             </div>
           </div>
         </div>
 
-        <!-- STEP 2: Banner Type -->
-        <div class="step-section">
+        <!-- STEP 3: Banner Type (order:3) -->
+        <div class="step-section" style="order:3;">
           <div class="step-header">
-            <div class="step-num" id="step1num">2</div>
+            <div class="step-num" id="step1num">3</div>
             <span class="step-title" id="step1Title">Banner Type</span>
           </div>
           <div class="step-body">
@@ -136,10 +141,10 @@
           </div>
         </div>
 
-        <!-- STEP 3: Output Format -->
-        <div class="step-section">
+        <!-- STEP 4: Output Format (order:4) -->
+        <div class="step-section" style="order:4;">
           <div class="step-header">
-            <div class="step-num">3</div>
+            <div class="step-num">4</div>
             <span class="step-title" id="step2Title">Output Format</span>
           </div>
           <div class="step-body">
@@ -200,11 +205,11 @@
           </div>
         </div>
 
-        <!-- STEP 4: Raffle Details -->
-        <div class="step-section">
+        <!-- STEP 2: Promo Details (order:2 — visually second, kept last in DOM) -->
+        <div class="step-section" style="order:2;">
           <div class="step-header">
-            <div class="step-num">4</div>
-            <span class="step-title" id="step3Title">Raffle Details</span>
+            <div class="step-num">2</div>
+            <span class="step-title" id="step3Title">Promo Details</span>
           </div>
           <div class="step-body">
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:9px 12px;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;">
@@ -213,6 +218,24 @@
                 <strong>Your privacy is protected.</strong> No images, logos, or information entered into this tool are stored, saved, or transmitted. All data exists only in your browser session and is never sent to any server.
               </p>
             </div>
+
+            <!-- Custom promo text (shown only when a Custom promo type is selected) -->
+            <div class="form-grid" id="customTextGroup" style="display:none;">
+              <div class="form-group span2">
+                <label class="field-label" id="labelCustomMain">Main Headline <span class="hint" id="customMainCounter">0 / 20</span></label>
+                <input type="text" id="customMainText" data-autopreview maxlength="20" placeholder="e.g. FALL SALE" oninput="updateCustomCounter('customMainText','customMainCounter',20)">
+              </div>
+              <div class="form-group span2">
+                <label class="field-label" id="labelCustomSub">Subheading <span class="hint" id="labelCustomSubHint">(optional)</span> <span class="hint" id="customSubCounter">0 / 20</span></label>
+                <input type="text" id="customSubText" data-autopreview maxlength="20" placeholder="e.g. 50% OFF" oninput="updateCustomCounter('customSubText','customSubCounter',20)">
+              </div>
+              <div class="form-group span2" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:8px 12px;">
+                <p style="font-size:0.7rem;color:#075985;line-height:1.5;margin:0;" id="customTextNote">
+                  💡 <strong>Tip:</strong> Short, punchy text works best. Both lines are rendered in the same bold display style as the built-in raffle labels.
+                </p>
+              </div>
+            </div>
+
             <div class="form-grid">
               <div class="form-group span2">
                 <label class="field-label" id="labelOrgName">Organization Name</label>
@@ -326,19 +349,20 @@
               </div>
             </div>
 
-            <!-- Details Toggle -->
-            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:8px 12px;margin-bottom:2px;display:flex;gap:8px;align-items:flex-start;">
-              <span style="font-size:0.95rem;flex-shrink:0;margin-top:1px;">⚠️</span>
-              <p style="font-size:0.7rem;color:#92400e;line-height:1.5;margin:0;font-weight:500;" id="jurisdictionNote">
-                <strong>Leave this off in most cases.</strong> Detailed information is only required on raffle banners in certain jurisdictions. When in doubt, keep this toggled off.
-              </p>
-            </div>
+            <!-- Details Toggle (hidden for Custom promo types) -->
+            <div id="detailsToggleWrap">
             <div class="toggle-row" onclick="toggleAdditional()">
               <div class="toggle-switch" id="toggleSwitch"></div>
               <div>
                 <div class="toggle-label" id="toggleLabel">Include Detailed Information</div>
                 <div class="toggle-sublabel" id="toggleSublabel">Dates, tickets, prize amounts, draw location</div>
               </div>
+            </div>
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:8px 12px;margin-top:8px;display:flex;gap:8px;align-items:flex-start;">
+              <span style="font-size:0.95rem;flex-shrink:0;margin-top:1px;">⚠️</span>
+              <p style="font-size:0.7rem;color:#92400e;line-height:1.5;margin:0;font-weight:500;" id="jurisdictionNote">
+                <strong>Leave this off in most cases.</strong> Detailed information is only required on raffle banners in certain jurisdictions. When in doubt, keep this toggled off.
+              </p>
             </div>
             <div id="detailsNote" style="display:none;font-size:0.68rem;color:var(--gray-500);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;padding:6px 10px;margin-top:4px;line-height:1.5;">
               💡 <strong>Tip:</strong> After filling in the details below, click <strong>Generate Banner</strong> if the preview doesn't update automatically.
@@ -401,6 +425,7 @@
                 </div>
               </div>
             </div>
+            </div><!-- /detailsToggleWrap -->
           </div>
         </div>
 
@@ -411,6 +436,9 @@
         <button type="button" id="generateBtn" class="btn-generate" onclick="generatePoster()" title="Generate banner  (⌘ Return)">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
           <span id="generateBtnLabel">Generate Banner</span>
+        </button>
+        <button type="button" id="resetBtn" class="btn-reset" onclick="resetAll()" title="Reset all fields">
+          <span id="resetBtnLabel">Reset All Fields</span>
         </button>
       </div>
       <div style="padding:6px 16px 0;text-align:center;">
@@ -469,7 +497,7 @@
 
   <script src="vendor/color-thief.umd.js"></script>
   <script src="vendor/qrcode.min.js"></script>
-  <script type="module" src="js/ui/components.js"></script>
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/ui/components.js?v=20260816f"></script>
+  <script type="module" src="js/main.js?v=20260816f"></script>
 </body>
 </html>

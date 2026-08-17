@@ -101,6 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Progressive enhancement — never block the app if the UI kit is missing.
     console.debug('PB enhancement skipped:', err?.message);
   }
+
+  // Filter the promo-type dropdown to the initial language (English) so the
+  // user doesn't see all 9 mixed-language options on first load.
+  try { _rebuildTypeDropdown('en'); } catch (_) {}
 });
 
 
@@ -117,7 +121,10 @@ let currentLang = 'en';    // 'en', 'fr' or 'es' — driven by raffle type selec
 // ═══════════════════════════════════════════════════════════════════════
 const UI_STRINGS = {
   en: {
-    step0Title:'Raffle Type', step1Title:'Banner Type', step2Title:'Output Format', step3Title:'Raffle Details',
+    step0Title:'Select Language', step1Title:'Banner Type', step2Title:'Output Format', step3Title:'Promo Details',
+    labelSelectLang:'Language',
+    resetBtn:'Reset All Fields',
+    resetConfirm:'Reset all fields? Your current banner will be cleared and cannot be recovered.',
     modeStandard:' Standard', modeSport:' Sport',
     sportSelectorLabel:'Select Sport',
     sports:{ hockey:'Hockey', soccer:'Soccer', football:'Football', baseball:'Baseball', softball:'Softball', basketball:'Basketball', waterpolo:'Water Polo', volleyball:'Volleyball', ringette:'Ringette', curling:'Curling', gymnastics:'Gymnastics', golf:'Golf', figureskating:'Figure Skating', lacrosse:'Lacrosse', rugby:'Rugby', tennis:'Tennis', swimming:'Swimming', afl:'AFL', wrestling:'Wrestling / MMA', equestrian:'Equestrian', ultimatefrisbee:'Ultimate Frisbee', fencing:'Fencing', dance:'Dance', boxing:'Boxing', trackfield:'Track & Field' },
@@ -126,7 +133,10 @@ const UI_STRINGS = {
     crpApply:'✓ Apply Custom Size', crpApplied:(w,h)=>`✓ Applied — ${w} × ${h}`,
     privacyNotice:'<strong>Your privacy is protected.</strong> No images, logos, or information entered into this tool are stored, saved, or transmitted. All data exists only in your browser session and is never sent to any server.',
     labelOrgName:'Organization Name', phOrgName:'e.g. Northside Hockey',
-    labelRaffleType:'Raffle Type',
+    labelRaffleType:'Promo Type',
+    labelCustomMain:'Main Headline', phCustomMain:'e.g. FALL SALE',
+    labelCustomSub:'Subheading', labelCustomSubHint:'(optional)', phCustomSub:'e.g. 50% OFF',
+    customTextNote:'💡 <strong>Tip:</strong> Short, punchy text works best. Both lines are rendered in the same bold display style as the built-in raffle labels.',
     labelLogoUpload:'Team / Club Logo',
     logoUploadDefault:'Click Here to upload logo or image…',
     logoUploadNew:'Click Here to upload new file',
@@ -178,7 +188,10 @@ const UI_STRINGS = {
     downloadReuseHint:'💾 <strong>Editable file:</strong> this PNG stores your form data. Keep the original and re-upload it here later — e.g. to swap in your approved licence number — without re-entering anything. Re-saving through other image tools may strip the embedded data.',
   },
   fr: {
-    step0Title:'Type de tirage', step1Title:'Type de bannière', step2Title:'Format de sortie', step3Title:'Détails du tirage',
+    step0Title:'Choisir la langue', step1Title:'Type de bannière', step2Title:'Format de sortie', step3Title:'Détails de la promo',
+    labelSelectLang:'Langue',
+    resetBtn:'Tout réinitialiser',
+    resetConfirm:'Réinitialiser tous les champs ? Votre bannière actuelle sera effacée et ne pourra pas être récupérée.',
     modeStandard:' Standard', modeSport:' Sport',
     sportSelectorLabel:'Choisir un sport',
     sports:{ hockey:'Hockey', soccer:'Soccer', football:'Football', baseball:'Baseball', softball:'Softball', basketball:'Basketball', waterpolo:'Water-polo', volleyball:'Volleyball', ringette:'Ringette', curling:'Curling', gymnastics:'Gymnastique', golf:'Golf', figureskating:'Patinage artistique', lacrosse:'Crosse', rugby:'Rugby', tennis:'Tennis', swimming:'Natation', afl:'AFL', wrestling:'Lutte / AMM', equestrian:'Équitation', ultimatefrisbee:'Frisbee ultime', fencing:'Escrime', dance:'Danse', boxing:'Boxe', trackfield:'Athlétisme' },
@@ -187,7 +200,10 @@ const UI_STRINGS = {
     crpApply:'✓ Appliquer la taille', crpApplied:(w,h)=>`✓ Appliqué — ${w} × ${h}`,
     privacyNotice:'<strong>Votre vie privée est protégée.</strong> Aucune image, logo ou information saisie dans cet outil n\'est stockée, enregistrée ou transmise. Toutes les données existent uniquement dans votre session de navigateur et ne sont jamais envoyées à un serveur.',
     labelOrgName:'Nom de l\'organisme', phOrgName:'ex. : Hockey Northside',
-    labelRaffleType:'Type de tirage',
+    labelRaffleType:'Type de promo',
+    labelCustomMain:'Titre principal', phCustomMain:'ex. : SOLDE D\'AUTOMNE',
+    labelCustomSub:'Sous-titre', labelCustomSubHint:'(facultatif)', phCustomSub:'ex. : 50 % DE RABAIS',
+    customTextNote:'💡 <strong>Conseil :</strong> Un texte court et percutant fonctionne le mieux. Les deux lignes sont rendues dans le même style d\'affichage gras que les libellés de tirage intégrés.',
     labelLogoUpload:'Logo de l\'équipe / club',
     logoUploadDefault:'Cliquez ici pour téléverser un logo…',
     logoUploadNew:'Cliquez ici pour téléverser un nouveau fichier',
@@ -239,7 +255,10 @@ const UI_STRINGS = {
     downloadReuseHint:'💾 <strong>Fichier modifiable :</strong> ce PNG contient les données de votre formulaire. Conservez l\'original et retéléversez-le ici plus tard — par ex. pour insérer votre numéro de licence approuvé — sans tout ressaisir. Le réenregistrement par un autre outil d\'image peut supprimer les données intégrées.',
   },
   es: {
-    step0Title:'Tipo de rifa', step1Title:'Tipo de bandera', step2Title:'Formato de salida', step3Title:'Detalles de la rifa',
+    step0Title:'Elegir el idioma', step1Title:'Tipo de bandera', step2Title:'Formato de salida', step3Title:'Detalles de la promo',
+    labelSelectLang:'Idioma',
+    resetBtn:'Restablecer todo',
+    resetConfirm:'¿Restablecer todos los campos? Su bandera actual se borrará y no podrá recuperarse.',
     modeStandard:' Estándar', modeSport:' Deporte',
     sportSelectorLabel:'Elegir un deporte',
     sports:{ hockey:'Hockey', soccer:'Fútbol', football:'Fútbol americano', baseball:'Béisbol', softball:'Sóftbol', basketball:'Baloncesto', waterpolo:'Waterpolo', volleyball:'Voleibol', ringette:'Ringette', curling:'Curling', gymnastics:'Gimnasia', golf:'Golf', figureskating:'Patinaje artístico', lacrosse:'Lacrosse', rugby:'Rugby', tennis:'Tenis', swimming:'Natación', afl:'AFL', wrestling:'Lucha / AMM', equestrian:'Ecuestre', ultimatefrisbee:'Ultimate', fencing:'Esgrima', dance:'Baile', boxing:'Boxeo', trackfield:'Atletismo' },
@@ -248,7 +267,10 @@ const UI_STRINGS = {
     crpApply:'✓ Aplicar tamaño', crpApplied:(w,h)=>`✓ Aplicado — ${w} × ${h}`,
     privacyNotice:'<strong>Su privacidad está protegida.</strong> Ninguna imagen, logo o información ingresada en esta herramienta se almacena, guarda ni se transmite. Todos los datos existen solo en su sesión del navegador y nunca se envían a un servidor.',
     labelOrgName:'Nombre de la organización', phOrgName:'ej.: Hockey Northside',
-    labelRaffleType:'Tipo de rifa',
+    labelRaffleType:'Tipo de promo',
+    labelCustomMain:'Titular principal', phCustomMain:'ej.: OFERTA DE OTOÑO',
+    labelCustomSub:'Subtítulo', labelCustomSubHint:'(opcional)', phCustomSub:'ej.: 50% DE DESCUENTO',
+    customTextNote:'💡 <strong>Consejo:</strong> El texto corto y contundente funciona mejor. Ambas líneas se muestran con el mismo estilo en negrita que las etiquetas de rifa integradas.',
     labelLogoUpload:'Logo del equipo / club',
     logoUploadDefault:'Haga clic aquí para subir un logo o imagen…',
     logoUploadNew:'Haga clic aquí para subir un nuevo archivo',
@@ -312,17 +334,8 @@ function applyUILanguage(lang) {
   _setText('step2Title', S.step2Title);
   _setText('step3Title', S.step3Title);
 
-  // Language notice in Step 1
-  const langNoticeEl = document.getElementById('langNotice');
-  if (langNoticeEl) {
-    if (lang === 'fr') {
-      langNoticeEl.innerHTML = '<strong>La langue est choisie ici.</strong> Sélectionner un type de tirage français (<em>Tirage moitié-moitié</em> ou <em>Tirage de Prix</em>) bascule l\'interface et la bannière en français. Sélectionner un type espagnol (<em>Rifa 50/50</em> ou <em>Rifa con Premio</em>) bascule le tout en espagnol.';
-    } else if (lang === 'es') {
-      langNoticeEl.innerHTML = '<strong>El idioma se selecciona aquí.</strong> Elegir un tipo de rifa en español (<em>Rifa 50/50</em> o <em>Rifa con Premio</em>) cambiará toda la interfaz y la bandera generada al español. Elegir un tipo en francés (<em>Tirage moitié-moitié</em> o <em>Tirage de Prix</em>) las cambiará al francés.';
-    } else {
-      langNoticeEl.innerHTML = '<strong>Language is set here.</strong> Selecting a French raffle type (<em>Tirage moitié-moitié</em> or <em>Tirage de Prix</em>) will switch the entire interface and banner output to French. Selecting a Spanish raffle type (<em>Rifa 50/50</em> or <em>Rifa con Premio</em>) will switch it to Spanish.';
-    }
-  }
+  // Reset button label (localised)
+  _setText('resetBtnLabel', S.resetBtn);
 
   // Mode buttons
   _setText('modeStandardLabel', S.modeStandard);
@@ -351,10 +364,19 @@ function applyUILanguage(lang) {
   _setHTML('privacyNotice', S.privacyNotice);
 
   // Form labels
+  _setText('labelSelectLang', S.labelSelectLang);
   _setText('labelOrgName', S.labelOrgName);
   _setText('labelRaffleType', S.labelRaffleType);
   _setText('labelLogoUpload', S.labelLogoUpload);
   _setText('logoRemoveBtn', S.removeLogoBtn);
+
+  // Custom promo text fields
+  _setText('labelCustomMain', S.labelCustomMain);
+  _setText('labelCustomSub',  S.labelCustomSub);
+  _setText('labelCustomSubHint', S.labelCustomSubHint);
+  _setPH('customMainText', S.phCustomMain);
+  _setPH('customSubText',  S.phCustomSub);
+  _setHTML('customTextNote', S.customTextNote);
 
   // Brand palette
   _setText('bpTitle', S.bpTitle);
@@ -580,8 +602,8 @@ function removePackage(btn) {
 
 function togglePrizeImage() {
   const t = document.getElementById('raffleType').value;
-  const newLang = (t === 'tirage' || t === 'tirage5050') ? 'fr'
-                : (t === 'esrifa' || t === 'es5050')     ? 'es'
+  const newLang = (t === 'tirage' || t === 'tirage5050' || t === 'custom_fr') ? 'fr'
+                : (t === 'esrifa' || t === 'es5050'     || t === 'custom_es') ? 'es'
                 : 'en';
   if (newLang !== currentLang) applyUILanguage(newLang);
   const pig = document.getElementById('prizeImageGroup');
@@ -591,6 +613,26 @@ function togglePrizeImage() {
   const pin = document.getElementById('prizeImageNote');
   const ts = document.getElementById('toggleSwitch');
   const detailsOn = ts.classList.contains('active');
+  const isCustom = (t === 'custom' || t === 'custom_fr' || t === 'custom_es');
+
+  // Custom promo types hide the whole raffle-details apparatus (prize image,
+  // Include-Detailed-Information toggle, and every field it exposes) and show
+  // two free-text inputs that drive the banner headline instead.
+  const ctg  = document.getElementById('customTextGroup');
+  const dtw  = document.getElementById('detailsToggleWrap');
+  if (ctg) ctg.style.display = isCustom ? '' : 'none';
+  if (dtw) dtw.style.display = isCustom ? 'none' : '';
+
+  if (isCustom) {
+    pig.style.display='none';
+    pds.style.display='none';
+    pvs.style.display='none';
+    if(pin) pin.style.display='none';
+    piu.disabled=false;
+    _syncLanguageDropdown();
+    return;
+  }
+
   if (t==='prize' || t==='tirage' || t==='esrifa') {
     pig.style.display='block';
     if (detailsOn) {
@@ -610,6 +652,106 @@ function togglePrizeImage() {
     pvs.style.display='none';
     if(pin) pin.style.display='none';
     piu.disabled=false;
+  }
+  _syncLanguageDropdown();
+}
+
+// ── Language + promo type coordination ──────────────────────────────────
+// Two visible dropdowns: #languageSelector (en/fr/es) and #raffleType (the
+// 3 promo types for the active language). Switching language preserves the
+// family (5050 → tirage5050 → es5050; prize → tirage → esrifa; custom →
+// custom_fr → custom_es) so the user's intent survives a locale switch.
+const TYPE_TO_FAMILY = {
+  '5050':'5050', 'tirage5050':'5050', 'es5050':'5050',
+  'prize':'prize', 'tirage':'prize', 'esrifa':'prize',
+  'custom':'custom', 'custom_fr':'custom', 'custom_es':'custom',
+};
+const TYPE_TO_LANG = {
+  '5050':'en', 'prize':'en', 'custom':'en',
+  'tirage5050':'fr', 'tirage':'fr', 'custom_fr':'fr',
+  'es5050':'es', 'esrifa':'es', 'custom_es':'es',
+};
+const FAMILY_LANG = {
+  '5050':   { en:'5050',   fr:'tirage5050', es:'es5050' },
+  'prize':  { en:'prize',  fr:'tirage',     es:'esrifa' },
+  'custom': { en:'custom', fr:'custom_fr',  es:'custom_es' },
+};
+
+// Snapshot of every raffleType <option> before we start filtering, so we can
+// rebuild the dropdown from a stable source on each language switch.
+let _allTypeOptions = null;
+function _snapshotTypeOptions() {
+  const sel = document.getElementById('raffleType');
+  if (!sel || _allTypeOptions) return;
+  _allTypeOptions = Array.from(sel.options).map(o => ({
+    value: o.value, text: o.textContent, lang: o.dataset.lang,
+  }));
+}
+
+function _rebuildTypeDropdown(lang, preferValue) {
+  _snapshotTypeOptions();
+  const sel = document.getElementById('raffleType');
+  if (!sel || !_allTypeOptions) return;
+  const opts = _allTypeOptions.filter(o => o.lang === lang);
+  sel.innerHTML = '';
+  opts.forEach(({ value, text }) => {
+    const opt = document.createElement('option');
+    opt.value = value; opt.textContent = text;
+    sel.appendChild(opt);
+  });
+  sel.value = (preferValue && opts.some(o => o.value === preferValue)) ? preferValue : opts[0]?.value || '';
+}
+
+function setLanguage(lang) {
+  const sel = document.getElementById('raffleType');
+  const cur = sel?.value || '5050';
+  const family = TYPE_TO_FAMILY[cur] || '5050';
+  const target = FAMILY_LANG[family]?.[lang] || FAMILY_LANG['5050'][lang];
+  _rebuildTypeDropdown(lang, target);
+  if (sel) sel.dispatchEvent(new Event('change'));
+  // togglePrizeImage flips UI labels but doesn't re-render the canvas; the
+  // auto-preview wiring listens for 'input' (not 'change'), so kick off a
+  // re-render explicitly so the banner text updates to the new language.
+  scheduleAutoPreview();
+}
+
+// Used by applyBannerState and any other programmatic path that needs to
+// set a specific promo type (including switching language along the way).
+function setPromoType(type) {
+  const lang = TYPE_TO_LANG[type];
+  if (!lang) return;
+  _rebuildTypeDropdown(lang, type);
+  document.getElementById('raffleType')?.dispatchEvent(new Event('change'));
+  scheduleAutoPreview();
+}
+
+// Keep #languageSelector in sync with whatever language is implied by the
+// current raffleType value (covers PNG restore + any code path that sets
+// raffleType directly).
+function _syncLanguageDropdown() {
+  const val = document.getElementById('raffleType')?.value || '5050';
+  const lang = TYPE_TO_LANG[val] || 'en';
+  const ls = document.getElementById('languageSelector');
+  if (ls && ls.value !== lang) ls.value = lang;
+}
+
+// Live character counter for the Custom Text inputs. Turns amber near the
+// limit so users see it before the browser blocks further typing.
+function updateCustomCounter(inputId, counterId, max) {
+  const inp = document.getElementById(inputId);
+  const el  = document.getElementById(counterId);
+  if (!inp || !el) return;
+  const n = inp.value.length;
+  el.textContent = `${n} / ${max}`;
+  el.style.color = n >= max ? '#b45309' : '';
+}
+
+// Full reset — reloading the page is the simplest and most reliable way
+// to clear every input, uploaded file, brand palette, and cached state.
+function resetAll() {
+  const msg = (UI_STRINGS[currentLang] || UI_STRINGS.en).resetConfirm;
+  if (window.confirm(msg)) {
+    window.location.reload();
   }
 }
 
@@ -879,18 +1021,32 @@ function _currentAspectString() {
 // ═══════════════════════════════════════════════════════════════════════
 // LANGUAGE STRING HELPER
 // Returns all canvas-rendered strings keyed to the raffleType value.
-// English types: '5050', 'prize'
-// French types:  'tirage5050', 'tirage'
-// Spanish types: 'es5050',    'esrifa'
+// English types: '5050', 'prize', 'custom'
+// French types:  'tirage5050', 'tirage', 'custom_fr'
+// Spanish types: 'es5050',    'esrifa', 'custom_es'
+// For custom_* types the mainTxt/subTxt/bandLabel come from the two
+// free-text inputs on the form; every other string is the language default.
 // ═══════════════════════════════════════════════════════════════════════
 function getRaffleStrings(raffleType) {
-  const isFr = raffleType === 'tirage'  || raffleType === 'tirage5050';
-  const isEs = raffleType === 'esrifa'  || raffleType === 'es5050';
+  const isFr = raffleType === 'tirage'  || raffleType === 'tirage5050' || raffleType === 'custom_fr';
+  const isEs = raffleType === 'esrifa'  || raffleType === 'es5050'     || raffleType === 'custom_es';
+  const isCustom = raffleType === 'custom' || raffleType === 'custom_fr' || raffleType === 'custom_es';
+  let customMain = '', customSub = '';
+  if (isCustom) {
+    customMain = (document.getElementById('customMainText')?.value || '').trim().toUpperCase();
+    customSub  = (document.getElementById('customSubText')?.value  || '').trim().toUpperCase();
+  }
+  const customDefaults = isFr ? { main:'VOTRE TEXTE', sub:'ICI' }
+                       : isEs ? { main:'SU TEXTO',    sub:'AQUÍ' }
+                       :        { main:'YOUR TEXT',   sub:'HERE' };
+  const cMain = isCustom ? (customMain || customDefaults.main) : null;
+  const cSub  = isCustom ? customSub : null;  // sub is optional — blank is fine
+  const cBand = isCustom ? [customMain, customSub].filter(Boolean).join(' ') || customDefaults.main : null;
   if (isFr) {
     return {
-      mainTxt:    raffleType === 'tirage5050' ? 'MOITIÉ-MOITIÉ' : 'TIRAGE',
-      subTxt:     raffleType === 'tirage5050' ? 'TIRAGE' : 'DE PRIX',
-      bandLabel:  raffleType === 'tirage5050' ? 'TIRAGE MOITIÉ-MOITIÉ' : 'TIRAGE DE PRIX',
+      mainTxt:    isCustom ? cMain : (raffleType === 'tirage5050' ? 'MOITIÉ-MOITIÉ' : 'TIRAGE'),
+      subTxt:     isCustom ? cSub  : (raffleType === 'tirage5050' ? 'TIRAGE' : 'DE PRIX'),
+      bandLabel:  isCustom ? cBand : (raffleType === 'tirage5050' ? 'TIRAGE MOITIÉ-MOITIÉ' : 'TIRAGE DE PRIX'),
       thankYou:   'MERCI POUR VOTRE SOUTIEN !',
       pkgTitle:   'Forfaits de billets',
       ticketSg:   'billet',
@@ -909,9 +1065,9 @@ function getRaffleStrings(raffleType) {
   }
   if (isEs) {
     return {
-      mainTxt:    raffleType === 'es5050' ? '50/50' : 'RIFA',
-      subTxt:     raffleType === 'es5050' ? 'RIFA'  : 'CON PREMIO',
-      bandLabel:  raffleType === 'es5050' ? 'RIFA 50/50' : 'RIFA CON PREMIO',
+      mainTxt:    isCustom ? cMain : (raffleType === 'es5050' ? '50/50' : 'RIFA'),
+      subTxt:     isCustom ? cSub  : (raffleType === 'es5050' ? 'RIFA'  : 'CON PREMIO'),
+      bandLabel:  isCustom ? cBand : (raffleType === 'es5050' ? 'RIFA 50/50' : 'RIFA CON PREMIO'),
       thankYou:   '¡GRACIAS POR SU APOYO!',
       pkgTitle:   'Paquetes de boletos',
       ticketSg:   'boleto',
@@ -929,9 +1085,9 @@ function getRaffleStrings(raffleType) {
     };
   }
   return {
-    mainTxt:    raffleType === '5050' ? '50/50' : 'PRIZE',
-    subTxt:     'RAFFLE',
-    bandLabel:  raffleType === '5050' ? '50/50 RAFFLE' : 'PRIZE RAFFLE',
+    mainTxt:    isCustom ? cMain : (raffleType === '5050' ? '50/50' : 'PRIZE'),
+    subTxt:     isCustom ? cSub  : 'RAFFLE',
+    bandLabel:  isCustom ? cBand : (raffleType === '5050' ? '50/50 RAFFLE' : 'PRIZE RAFFLE'),
     thankYou:   'THANK YOU FOR YOUR SUPPORT',
     pkgTitle:   'Ticket Packages',
     ticketSg:   'ticket',
@@ -1422,10 +1578,15 @@ function readFormState() {
     const p = r.querySelector('.package-price').value;
     if (t && p) packages.push({ tickets: t, price: p });
   });
+  const rType = dom('raffleType')?.value || '';
+  // Custom promo types hide the details toggle entirely — force showDetails
+  // off so any previously-entered raffle details don't leak into the render.
+  const isCustom = rType === 'custom' || rType === 'custom_fr' || rType === 'custom_es';
+  const showDetails = !isCustom && (dom('toggleSwitch')?.classList.contains('active') || false);
   return {
     orgName:          dom('orgName')?.value || '',
-    raffleType:       dom('raffleType')?.value || '',
-    showDetails:      dom('toggleSwitch')?.classList.contains('active') || false,
+    raffleType:       rType,
+    showDetails,
     logoFile:         dom('logoUpload')?.files[0] || null,
     prizeFile:        prizeInput?.files[0] || null,
     prizeInputActive: prizeInput ? !prizeInput.disabled : false,
@@ -1480,6 +1641,8 @@ async function captureBannerState() {
       drawTime:         dom('drawTime')?.value || '',
       drawLocation:     dom('drawLocation')?.value || '',
       qrUrl:            dom('qrUrl')?.value || '',
+      customMainText:   dom('customMainText')?.value || '',
+      customSubText:    dom('customSubText')?.value  || '',
       packages,
       mode:             currentMode,
       sport:            currentSport,
@@ -1507,12 +1670,12 @@ async function applyBannerState(state) {
   if (!state || !state.form) throw new Error('Empty or malformed state');
   const f = state.form;
 
-  // 1. Raffle type + language. Setting via .value and dispatching change
-  //    triggers togglePrizeImage which handles language flip + prize UI.
-  const rt = dom('raffleType');
-  if (rt && typeof f.raffleType === 'string') {
-    rt.value = f.raffleType;
-    rt.dispatchEvent(new Event('change'));
+  // 1. Raffle type + language. setPromoType rebuilds the raffleType dropdown
+  //    so the desired value exists (it may belong to a different language than
+  //    the one currently loaded), then dispatches change which triggers
+  //    togglePrizeImage → applyUILanguage + prize section visibility.
+  if (typeof f.raffleType === 'string') {
+    setPromoType(f.raffleType);
   }
 
   // 2a. Text inputs
@@ -1528,6 +1691,10 @@ async function applyBannerState(state) {
   setVal('drawLocation', f.drawLocation);
   setVal('qrUrl', f.qrUrl);
   if (f.qrUrl) updateQrPreview(f.qrUrl);
+  setVal('customMainText', f.customMainText);
+  setVal('customSubText',  f.customSubText);
+  updateCustomCounter('customMainText', 'customMainCounter', 20);
+  updateCustomCounter('customSubText',  'customSubCounter',  20);
 
   // 2b. Packages — clear existing rows, then rebuild.
   const pc = document.getElementById('packageContainer');
@@ -2046,7 +2213,9 @@ function strokeFitLines(ctx, lines, cx, startY, lineHeight) {
 
 function hasWhiteBackground(img) {
   const o=document.createElement('canvas'); o.width=img.width; o.height=img.height;
-  const c=o.getContext('2d'); c.drawImage(img,0,0);
+  // willReadFrequently hints the browser to keep this canvas backing store
+  // on the CPU side — getImageData calls skip the GPU→CPU roundtrip.
+  const c=o.getContext('2d',{willReadFrequently:true}); c.drawImage(img,0,0);
   const pts=[[2,2],[img.width-3,2],[2,img.height-3],[img.width-3,img.height-3],[Math.floor(img.width/2),2]];
   let wc=0;
   for (const [sx,sy] of pts) { try { const p=c.getImageData(sx,sy,1,1).data; if(p[0]>230&&p[1]>230&&p[2]>230) wc++; } catch(e){} }
@@ -2905,7 +3074,7 @@ function _warnIfCheckerboard(img, label) {
     const sw = Math.round(img.width * sc) || 1;
     const sh = Math.round(img.height * sc) || 1;
     const oc = document.createElement('canvas'); oc.width = sw; oc.height = sh;
-    const ctx = oc.getContext('2d'); ctx.drawImage(img, 0, 0, sw, sh);
+    const ctx = oc.getContext('2d',{willReadFrequently:true}); ctx.drawImage(img, 0, 0, sw, sh);
     const d = ctx.getImageData(0, 0, sw, sh).data;
 
     // Collect greyscale border values
@@ -3111,7 +3280,7 @@ function getDominantColor(img) {
 function removeImageBackground(img) {
   const oc=document.createElement('canvas');
   oc.width=img.width; oc.height=img.height;
-  const oc2=oc.getContext('2d');
+  const oc2=oc.getContext('2d',{willReadFrequently:true});
   oc2.drawImage(img,0,0);
   const id=oc2.getImageData(0,0,oc.width,oc.height);
   const d=id.data, W=oc.width, H=oc.height;
@@ -3182,7 +3351,7 @@ function removeImageBackground(img) {
 function isLogoMostlyWhite(img) {
   const oc=document.createElement('canvas');
   oc.width=Math.min(img.width,120); oc.height=Math.min(img.height,120);
-  const oc2=oc.getContext('2d');
+  const oc2=oc.getContext('2d',{willReadFrequently:true});
   oc2.drawImage(img,0,0,oc.width,oc.height);
   const d=oc2.getImageData(0,0,oc.width,oc.height).data;
   let opaquePx=0, colouredPx=0;
@@ -5330,8 +5499,17 @@ function generateStandardPoster() {
       const ltw=mainTxt.split('').reduce((s,l)=>s+ctx.measureText(l).width+lts,0)-lts;
       let xp=rtx-ltw/2;
       mainTxt.split('').forEach(l=>{const lw=ctx.measureText(l).width;if(!isSingleColored)ctx.strokeText(l,xp+lw/2,rty);ctx.fillText(l,xp+lw/2,rty);xp+=lw+lts;});
-      const subFontSz = isPortrait ? Math.round(th*0.10) : Math.round(_nsFittedSz*0.40);
-      const subY=rty+Math.round(_nsFittedSz*0.55*sm);
+      // Portrait: cap sub relative to the fitted main so a small fitted main
+      // (long Custom Text) doesn't get overrun by a fixed-size sub. Also floor
+      // subY to guarantee a gap between main's descent and sub's ascent —
+      // the previous formula (0.55 × fitted main) alone was too tight once
+      // fitMainFontSz shrank the main below the sub.
+      const subFontSz = isPortrait
+        ? Math.min(Math.round(th*0.10), Math.round(_nsFittedSz*0.55))
+        : Math.round(_nsFittedSz*0.40);
+      const _baseSubY = rty + Math.round(_nsFittedSz * 0.55 * sm);
+      const _minSubY  = rty + Math.round(_nsFittedSz * 0.28) + Math.round(subFontSz * 0.72) + 8;
+      const subY = isPortrait ? Math.max(_baseSubY, _minSubY) : _baseSubY;
       ctx.font=`bold ${subFontSz}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
       if(!isSingleColored)ctx.strokeText(_ns_S.subTxt,rtx,subY);
       ctx.fillText(_ns_S.subTxt,rtx,subY);
@@ -6835,6 +7013,7 @@ Object.assign(window, {
   openInstructions, removePackage, removeQrUrl, removeUploadedFile,
   resetBrandPalette, selectCustomRatio, selectRatio, selectSport,
   setMode, toggleAdditional,
+  setLanguage, setPromoType, resetAll, updateCustomCounter,
   // oninput=
   formatCommaNumber, setBrandSwatchColor, updateCustomColors, updateCustomPreview, updateQrPreview,
   // onchange=
