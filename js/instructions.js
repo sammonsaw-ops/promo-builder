@@ -94,8 +94,9 @@ const INSTRUCTIONS_STRINGS = {
     step3Label: 'Banner Type',
     step3Body: `
       <p>Choose the style of banner you want to create:</p>
-      <p><strong>Standard <span class="tag">🎟️</span></strong> — A clean, versatile design suitable for any promo or fundraiser.</p>
-      <p><strong>Sport <span class="tag">🏆</span></strong> — Adds a sport-themed graphic element (puck, ball, etc.) to the centre of the banner. After selecting Sport, choose your sport from the icon grid that appears below.</p>
+      <p><strong>Standard <span class="tag">🪧</span></strong> — A single-panel poster with a colour accent bar and clean typography. Modern, versatile, and works for any promo or fundraiser.</p>
+      <p><strong>Raffle <span class="tag">🎟️</span></strong> — A pair of scalloped raffle tickets side-by-side (or stacked in portrait) — the traditional ticket-stub look for raffles and fundraisers.</p>
+      <p><strong>Sport Themed Raffle <span class="tag">🏆</span></strong> — Adds a sport-themed graphic element (puck, ball, etc.) to the centre of the banner. After selecting it, choose your sport from the icon grid that appears below.</p>
       <p style="margin-top:6px;font-size:7.5pt;color:var(--gray-400);">Available sports: Hockey, Soccer, Football, Baseball, Softball, Basketball, Water Polo, Volleyball, Ringette, Curling, Gymnastics, Golf, Figure Skating, Lacrosse, Rugby, Tennis, Swimming, AFL, Wrestling/MMA, Equestrian, Ultimate Frisbee, Fencing, Dance, Boxing, and Track &amp; Field.</p>`,
     step4Label: 'Output Format',
     step4Body: `
@@ -160,8 +161,9 @@ const INSTRUCTIONS_STRINGS = {
     step3Label: 'Type de bannière',
     step3Body: `
       <p>Choisissez le style de bannière que vous souhaitez créer :</p>
-      <p><strong>Standard <span class="tag">🎟️</span></strong> — Un design épuré et polyvalent, adapté à toute promo ou collecte de fonds.</p>
-      <p><strong>Sport <span class="tag">🏆</span></strong> — Ajoute un élément graphique thématique (rondelle, ballon, etc.) au centre de la bannière. Après avoir sélectionné Sport, choisissez votre sport dans la grille d'icônes qui apparaît.</p>
+      <p><strong>Standard <span class="tag">🪧</span></strong> — Une affiche à un seul panneau avec une barre d'accent colorée et une typographie épurée. Moderne, polyvalente, adaptée à toute promo ou collecte de fonds.</p>
+      <p><strong>Tirage <span class="tag">🎟️</span></strong> — Une paire de billets de tirage à bords festonnés côte à côte (ou empilés en portrait) — le look traditionnel du talon de billet pour les tirages et les collectes de fonds.</p>
+      <p><strong>Tirage Sportif <span class="tag">🏆</span></strong> — Ajoute un élément graphique thématique (rondelle, ballon, etc.) au centre de la bannière. Après l'avoir sélectionné, choisissez votre sport dans la grille d'icônes qui apparaît.</p>
       <p style="margin-top:6px;font-size:7.5pt;color:var(--gray-400);">Sports disponibles : Hockey, Soccer, Football, Baseball, Softball, Basketball, Water-polo, Volleyball, Ringette, Curling, Gymnastique, Golf, Patinage artistique, Crosse, Rugby, Tennis, Natation, AFL, Lutte/AMM, Équitation, Frisbee ultime, Escrime, Danse, Boxe et Athlétisme.</p>`,
     step4Label: 'Format de sortie',
     step4Body: `

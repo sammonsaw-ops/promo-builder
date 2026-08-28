@@ -60,7 +60,7 @@
           <input type="file" id="restoreFileInput" accept="image/png" onchange="restoreFromPng(this)" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
         </div>
 
-        <!-- STEP 1: Select Language + Promo Type (order:1) -->
+        <!-- STEP 1: Language (order:1) -->
         <div class="step-section" style="order:1;">
           <div class="step-header">
             <div class="step-num">1</div>
@@ -75,24 +75,10 @@
                 <option value="es">Español</option>
               </select>
             </div>
-            <div class="form-group" style="margin-top:12px;">
-              <label class="field-label" id="labelRaffleType">Promo Type</label>
-              <select id="raffleType" data-autopreview onchange="togglePrizeImage()">
-                <option value="5050"       data-lang="en">50/50 Raffle</option>
-                <option value="prize"      data-lang="en">Prize Raffle</option>
-                <option value="custom"     data-lang="en">Custom Text</option>
-                <option value="tirage5050" data-lang="fr">Tirage moitié-moitié</option>
-                <option value="tirage"     data-lang="fr">Tirage de Prix</option>
-                <option value="custom_fr"  data-lang="fr">Personnalisé</option>
-                <option value="es5050"     data-lang="es">Rifa 50/50</option>
-                <option value="esrifa"     data-lang="es">Rifa con Premio</option>
-                <option value="custom_es"  data-lang="es">Personalizado</option>
-              </select>
-            </div>
           </div>
         </div>
 
-        <!-- STEP 3: Banner Type (order:3) -->
+        <!-- STEP 3: Banner Type + Promo Type (order:3) -->
         <div class="step-section" style="order:3;">
           <div class="step-header">
             <div class="step-num" id="step1num">3</div>
@@ -100,11 +86,14 @@
           </div>
           <div class="step-body">
             <div class="mode-switcher">
-              <button type="button" class="mode-btn active" id="modeStandard" onclick="setMode('standard')" aria-label="Standard banner mode">
-                <span class="mode-icon" aria-hidden="true">🎟️</span><span id="modeStandardLabel"> Standard</span>
+              <button type="button" class="mode-btn active" id="modeSimple" onclick="setMode('simple')" aria-label="Standard banner mode">
+                <span class="mode-icon" aria-hidden="true">🪧</span><span id="modeSimpleLabel"> Standard</span>
               </button>
-              <button type="button" class="mode-btn" id="modeSport" onclick="setMode('sport')" aria-label="Sport banner mode">
-                <span class="mode-icon" aria-hidden="true">🏆</span><span id="modeSportLabel"> Sport</span>
+              <button type="button" class="mode-btn" id="modeStandard" onclick="setMode('standard')" aria-label="Raffle mode">
+                <span class="mode-icon" aria-hidden="true">🎟️</span><span id="modeStandardLabel"> Raffle</span>
+              </button>
+              <button type="button" class="mode-btn" id="modeSport" onclick="setMode('sport')" aria-label="Sport Themed Raffle mode">
+                <span class="mode-icon" aria-hidden="true">🏆</span><span id="modeSportLabel"> Sport Themed Raffle</span>
               </button>
             </div>
             <!-- Sport Selector -->
@@ -136,6 +125,58 @@
                 <button type="button" class="sport-btn" data-sport="dance" onclick="selectSport(this)"><span class="sport-icon">💃</span><span class="sport-name">Dance</span></button>
                 <button type="button" class="sport-btn" data-sport="boxing" onclick="selectSport(this)"><span class="sport-icon">🥊</span><span class="sport-name">Boxing</span></button>
                 <button type="button" class="sport-btn" data-sport="trackfield" onclick="selectSport(this)"><span class="sport-icon">🏃</span><span class="sport-name">Track &amp; Field</span></button>
+              </div>
+            </div>
+            <!-- Promo Type dropdown — filtered by selected mode (Standard = Custom only) -->
+            <div class="form-group" style="margin-top:14px;">
+              <label class="field-label" id="labelRaffleType">Promo Type</label>
+              <select id="raffleType" data-autopreview onchange="togglePrizeImage()">
+                <option value="5050"       data-lang="en">50/50 Raffle</option>
+                <option value="prize"      data-lang="en">Prize Raffle</option>
+                <option value="custom"     data-lang="en">Custom Text</option>
+                <option value="tirage5050" data-lang="fr">Tirage moitié-moitié</option>
+                <option value="tirage"     data-lang="fr">Tirage de Prix</option>
+                <option value="custom_fr"  data-lang="fr">Personnalisé</option>
+                <option value="es5050"     data-lang="es">Rifa 50/50</option>
+                <option value="esrifa"     data-lang="es">Rifa con Premio</option>
+                <option value="custom_es"  data-lang="es">Personalizado</option>
+              </select>
+            </div>
+
+            <!-- Custom promo text — shown when the Promo Type is a Custom variant.
+                 Lives inside the Banner Type step so the copy inputs sit right
+                 below the Promo Type dropdown they belong to. -->
+            <div class="form-grid" id="customTextGroup" style="display:none;margin-top:12px;">
+              <div class="form-group span2">
+                <label class="field-label" id="labelCustomMain">Main Headline <span class="hint" id="customMainCounter">0 / 40</span></label>
+                <input type="text" id="customMainText" data-autopreview maxlength="40" placeholder="e.g. FALL SALE" oninput="updateCustomCounter('customMainText','customMainCounter',40)">
+              </div>
+              <div class="form-group span2">
+                <label class="field-label" id="labelCustomSub">Subheading <span class="hint" id="labelCustomSubHint">(optional)</span> <span class="hint" id="customSubCounter">0 / 40</span></label>
+                <input type="text" id="customSubText" data-autopreview maxlength="40" placeholder="e.g. 50% OFF" oninput="updateCustomCounter('customSubText','customSubCounter',40)">
+              </div>
+              <div class="form-group span2" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:8px 12px;">
+                <p style="font-size:0.7rem;color:#075985;line-height:1.5;margin:0;" id="customTextNote">
+                  💡 <strong>Tip:</strong> Short, punchy text works best. Both lines are rendered in the same bold display style as the built-in raffle labels.
+                </p>
+              </div>
+            </div>
+
+            <!-- Prize Image upload — shown only when Prize Raffle is selected.
+                 Lives inside the Banner Type step so it appears directly under
+                 the Promo Type dropdown that reveals it. -->
+            <div class="form-group" id="prizeImageGroup" style="display:none;margin-top:12px;">
+              <label class="field-label" id="labelPrizeImage">Prize Image <span class="hint" id="labelPrizeImageHint">(optional, Prize Raffle)</span></label>
+              <div class="file-upload-wrap">
+                <input type="file" id="prizeImageUpload" accept="image/*" onchange="updateFileLabel(this,'prizeLabel')">
+                <label class="file-upload-label" for="prizeImageUpload" id="prizeLabel">
+                  <span class="upload-icon">⬆</span>
+                  <span>Click Here to upload prize image…</span>
+                </label>
+              </div>
+              <button type="button" id="prizeRemoveBtn" onclick="removeUploadedFile('prizeImageUpload','prizeLabel','prizeRemoveBtn')" style="display:none;margin-top:6px;padding:4px 12px;font-size:11px;background:#fff0f0;border:1px solid #e57373;border-radius:6px;color:#c62828;cursor:pointer;">✕ Remove Prize Image</button>
+              <div id="prizeImageNote" style="display:none;margin-top:6px;font-size:0.68rem;color:#b45309;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:6px 10px;line-height:1.5;">
+                ⚠️ Prize image upload is unavailable while <strong>Include Detailed Information</strong> is toggled on. Turn off the toggle to upload a prize image instead.
               </div>
             </div>
           </div>
@@ -205,7 +246,7 @@
           </div>
         </div>
 
-        <!-- STEP 2: Promo Details (order:2 — visually second, kept last in DOM) -->
+        <!-- STEP 2: Promo Details (order:2 — visually second, kept later in DOM for readability) -->
         <div class="step-section" style="order:2;">
           <div class="step-header">
             <div class="step-num">2</div>
@@ -217,23 +258,6 @@
               <p style="font-size:0.72rem;color:#1e40af;line-height:1.5;margin:0;font-weight:500;" id="privacyNotice">
                 <strong>Your privacy is protected.</strong> No images, logos, or information entered into this tool are stored, saved, or transmitted. All data exists only in your browser session and is never sent to any server.
               </p>
-            </div>
-
-            <!-- Custom promo text (shown only when a Custom promo type is selected) -->
-            <div class="form-grid" id="customTextGroup" style="display:none;">
-              <div class="form-group span2">
-                <label class="field-label" id="labelCustomMain">Main Headline <span class="hint" id="customMainCounter">0 / 20</span></label>
-                <input type="text" id="customMainText" data-autopreview maxlength="20" placeholder="e.g. FALL SALE" oninput="updateCustomCounter('customMainText','customMainCounter',20)">
-              </div>
-              <div class="form-group span2">
-                <label class="field-label" id="labelCustomSub">Subheading <span class="hint" id="labelCustomSubHint">(optional)</span> <span class="hint" id="customSubCounter">0 / 20</span></label>
-                <input type="text" id="customSubText" data-autopreview maxlength="20" placeholder="e.g. 50% OFF" oninput="updateCustomCounter('customSubText','customSubCounter',20)">
-              </div>
-              <div class="form-group span2" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:8px 12px;">
-                <p style="font-size:0.7rem;color:#075985;line-height:1.5;margin:0;" id="customTextNote">
-                  💡 <strong>Tip:</strong> Short, punchy text works best. Both lines are rendered in the same bold display style as the built-in raffle labels.
-                </p>
-              </div>
             </div>
 
             <div class="form-grid">
@@ -320,33 +344,6 @@
                   <div class="bp-note" id="bpNote">These colours will be applied across your generated assets. Swatches have a greater effect on Standard Banners; Sport Banners use sport-specific theming with accents from your palette.</div>
                 </div>
               </div>
-              <div class="form-group span2" id="prizeImageGroup" style="display:none">
-                <label class="field-label" id="labelPrizeImage">Prize Image <span class="hint" id="labelPrizeImageHint">(optional, Prize Raffle)</span></label>
-                <div class="file-upload-wrap">
-                  <input type="file" id="prizeImageUpload" accept="image/*" onchange="updateFileLabel(this,'prizeLabel')">
-                  <label class="file-upload-label" for="prizeImageUpload" id="prizeLabel">
-                    <span class="upload-icon">⬆</span>
-                    <span>Click Here to upload prize image…</span>
-                  </label>
-                </div>
-                <button type="button" id="prizeRemoveBtn" onclick="removeUploadedFile('prizeImageUpload','prizeLabel','prizeRemoveBtn')" style="display:none;margin-top:6px;padding:4px 12px;font-size:11px;background:#fff0f0;border:1px solid #e57373;border-radius:6px;color:#c62828;cursor:pointer;">✕ Remove Prize Image</button>
-                <div id="prizeImageNote" style="display:none;margin-top:6px;font-size:0.68rem;color:#b45309;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:6px 10px;line-height:1.5;">
-                  ⚠️ Prize image upload is unavailable while <strong>Include Detailed Information</strong> is toggled on. Turn off the toggle to upload a prize image instead.
-                </div>
-              </div>
-            </div>
-
-            <!-- QR Code URL -->
-            <div class="form-group span2" style="margin-top:4px">
-              <label class="field-label"><span id="labelQrUrl">Ticket Purchase URL</span> <span class="hint" id="labelQrUrlHint">(adds QR code to banner)</span></label>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <input type="url" id="qrUrl" data-autopreview placeholder="https://your-raffle-platform.com/buy" oninput="updateQrPreview(this.value)" style="flex:1;">
-                <button type="button" id="qrRemoveBtn" onclick="removeQrUrl()" style="display:none;padding:4px 10px;font-size:11px;background:#fff0f0;border:1px solid #e57373;border-radius:6px;color:#c62828;cursor:pointer;white-space:nowrap;">✕ Remove</button>
-              </div>
-              <div class="qr-preview-wrap" id="qrPreviewWrap" style="display:none">
-                <div id="qrPreviewBox"></div>
-                <span class="qr-hint" id="qrHint">QR code will appear in the banner corner.<br>Leave blank to omit.</span>
-              </div>
             </div>
 
             <!-- Details Toggle (hidden for Custom promo types) -->
@@ -426,6 +423,27 @@
               </div>
             </div>
             </div><!-- /detailsToggleWrap -->
+          </div>
+        </div>
+
+        <!-- STEP 5: QR Code (order:5) -->
+        <div class="step-section" style="order:5;">
+          <div class="step-header">
+            <div class="step-num">5</div>
+            <span class="step-title" id="step4Title">QR Code</span>
+          </div>
+          <div class="step-body">
+            <div class="form-group">
+              <label class="field-label"><span id="labelQrUrl">Ticket Purchase URL</span> <span class="hint" id="labelQrUrlHint">(adds QR code to banner)</span></label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="url" id="qrUrl" data-autopreview placeholder="https://your-raffle-platform.com/buy" oninput="updateQrPreview(this.value)" style="flex:1;">
+                <button type="button" id="qrRemoveBtn" onclick="removeQrUrl()" style="display:none;padding:4px 10px;font-size:11px;background:#fff0f0;border:1px solid #e57373;border-radius:6px;color:#c62828;cursor:pointer;white-space:nowrap;">✕ Remove</button>
+              </div>
+              <div class="qr-preview-wrap" id="qrPreviewWrap" style="display:none">
+                <div id="qrPreviewBox"></div>
+                <span class="qr-hint" id="qrHint">QR code will appear in the banner corner.<br>Leave blank to omit.</span>
+              </div>
+            </div>
           </div>
         </div>
 

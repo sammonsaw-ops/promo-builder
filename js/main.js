@@ -103,13 +103,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Filter the promo-type dropdown to the initial language (English) so the
-  // user doesn't see all 9 mixed-language options on first load.
-  try { _rebuildTypeDropdown('en'); } catch (_) {}
+  // user doesn't see all 9 mixed-language options on first load. Then run
+  // togglePrizeImage so the visible field groups (custom text inputs vs
+  // raffle-details fields) match whatever the default type resolves to —
+  // in Simple mode this is 'custom', so the Custom Text inputs need to show.
+  try { _rebuildTypeDropdown('en'); togglePrizeImage(); } catch (_) {}
 });
 
 
 // ─── State ─────────────────────────────────────────────────────────────────
-let currentMode = 'standard';
+let currentMode = 'simple';
 let currentSport = 'hockey';
 let currentRatio = '16:9';
 let preloadedPrizeImg = null;
@@ -121,11 +124,11 @@ let currentLang = 'en';    // 'en', 'fr' or 'es' — driven by raffle type selec
 // ═══════════════════════════════════════════════════════════════════════
 const UI_STRINGS = {
   en: {
-    step0Title:'Select Language', step1Title:'Banner Type', step2Title:'Output Format', step3Title:'Promo Details',
+    step0Title:'Select Language', step1Title:'Banner Type', step2Title:'Output Format', step3Title:'Promo Details', step4Title:'QR Code',
     labelSelectLang:'Language',
     resetBtn:'Reset All Fields',
     resetConfirm:'Reset all fields? Your current banner will be cleared and cannot be recovered.',
-    modeStandard:' Standard', modeSport:' Sport',
+    modeSimple:' Standard', modeStandard:' Raffle', modeSport:' Sport Themed Raffle',
     sportSelectorLabel:'Select Sport',
     sports:{ hockey:'Hockey', soccer:'Soccer', football:'Football', baseball:'Baseball', softball:'Softball', basketball:'Basketball', waterpolo:'Water Polo', volleyball:'Volleyball', ringette:'Ringette', curling:'Curling', gymnastics:'Gymnastics', golf:'Golf', figureskating:'Figure Skating', lacrosse:'Lacrosse', rugby:'Rugby', tennis:'Tennis', swimming:'Swimming', afl:'AFL', wrestling:'Wrestling / MMA', equestrian:'Equestrian', ultimatefrisbee:'Ultimate Frisbee', fencing:'Fencing', dance:'Dance', boxing:'Boxing', trackfield:'Track & Field' },
     ratioDims:{ '16:9':'Banner / FB Cover', '1:1':'Instagram Square', '4:5':'IG Portrait', '9:16':'Story / Reel', '1.91:1':'FB / LinkedIn Ad', 'letter':'Print Poster', 'custom':'Any size' },
@@ -143,7 +146,7 @@ const UI_STRINGS = {
     removeLogoBtn:'✕ Remove Logo',
     bpTitle:'Extracted Brand Palette — click any swatch to edit', bpReset:'↺ Re-extract',
     bpDark:'Dark', bpPrimary:'Primary', bpAccent:'Accent', bpMid:'Mid', bpLight:'Light', bpLogoBg:'Logo BG',
-    bpNote:'These colours will be applied across your generated assets. Swatches have a greater effect on Standard Banners; Sport Banners use sport-specific theming with accents from your palette.',
+    bpNote:'These colours will be applied across your generated assets. Swatches have a greater effect on Standard and Raffle banners; Sport Themed Raffle banners use sport-specific theming with accents from your palette.',
     labelPrizeImage:'Prize Image', labelPrizeImageHint:'(optional, Prize Raffle)',
     prizeUploadDefault:'Click Here to upload prize image…',
     prizeUploadNew:'Click Here to upload new file',
@@ -188,11 +191,11 @@ const UI_STRINGS = {
     downloadReuseHint:'💾 <strong>Editable file:</strong> this PNG stores your form data. Keep the original and re-upload it here later — e.g. to swap in your approved licence number — without re-entering anything. Re-saving through other image tools may strip the embedded data.',
   },
   fr: {
-    step0Title:'Choisir la langue', step1Title:'Type de bannière', step2Title:'Format de sortie', step3Title:'Détails de la promo',
+    step0Title:'Choisir la langue', step1Title:'Type de bannière', step2Title:'Format de sortie', step3Title:'Détails de la promo', step4Title:'Code QR',
     labelSelectLang:'Langue',
     resetBtn:'Tout réinitialiser',
     resetConfirm:'Réinitialiser tous les champs ? Votre bannière actuelle sera effacée et ne pourra pas être récupérée.',
-    modeStandard:' Standard', modeSport:' Sport',
+    modeSimple:' Standard', modeStandard:' Tirage', modeSport:' Tirage Sportif',
     sportSelectorLabel:'Choisir un sport',
     sports:{ hockey:'Hockey', soccer:'Soccer', football:'Football', baseball:'Baseball', softball:'Softball', basketball:'Basketball', waterpolo:'Water-polo', volleyball:'Volleyball', ringette:'Ringette', curling:'Curling', gymnastics:'Gymnastique', golf:'Golf', figureskating:'Patinage artistique', lacrosse:'Crosse', rugby:'Rugby', tennis:'Tennis', swimming:'Natation', afl:'AFL', wrestling:'Lutte / AMM', equestrian:'Équitation', ultimatefrisbee:'Frisbee ultime', fencing:'Escrime', dance:'Danse', boxing:'Boxe', trackfield:'Athlétisme' },
     ratioDims:{ '16:9':'Bannière / Couverture FB', '1:1':'Carré Instagram', '4:5':'Portrait IG', '9:16':'Story / Reel', '1.91:1':'Pub FB / LinkedIn', 'letter':'Affiche imprimée', 'custom':'Toutes tailles' },
@@ -210,7 +213,7 @@ const UI_STRINGS = {
     removeLogoBtn:'✕ Supprimer le logo',
     bpTitle:'Palette de marque — cliquez sur une couleur pour modifier', bpReset:'↺ Réextraire',
     bpDark:'Foncé', bpPrimary:'Primaire', bpAccent:'Accent', bpMid:'Milieu', bpLight:'Clair', bpLogoBg:'Fond logo',
-    bpNote:'Ces couleurs seront appliquées à vos éléments générés. Les palettes ont un effet plus marqué sur les bannières Standard ; les bannières Sport utilisent un thème propre au sport avec des accents de votre palette.',
+    bpNote:'Ces couleurs seront appliquées à vos éléments générés. Les palettes ont un effet plus marqué sur les bannières Standard et de Tirage ; les bannières Sport utilisent un thème propre au sport avec des accents de votre palette.',
     labelPrizeImage:'Image du prix', labelPrizeImageHint:'(optionnel, Tirage de Prix)',
     prizeUploadDefault:'Cliquez ici pour téléverser l\'image du prix…',
     prizeUploadNew:'Cliquez ici pour téléverser un nouveau fichier',
@@ -255,11 +258,11 @@ const UI_STRINGS = {
     downloadReuseHint:'💾 <strong>Fichier modifiable :</strong> ce PNG contient les données de votre formulaire. Conservez l\'original et retéléversez-le ici plus tard — par ex. pour insérer votre numéro de licence approuvé — sans tout ressaisir. Le réenregistrement par un autre outil d\'image peut supprimer les données intégrées.',
   },
   es: {
-    step0Title:'Elegir el idioma', step1Title:'Tipo de bandera', step2Title:'Formato de salida', step3Title:'Detalles de la promo',
+    step0Title:'Elegir el idioma', step1Title:'Tipo de bandera', step2Title:'Formato de salida', step3Title:'Detalles de la promo', step4Title:'Código QR',
     labelSelectLang:'Idioma',
     resetBtn:'Restablecer todo',
     resetConfirm:'¿Restablecer todos los campos? Su bandera actual se borrará y no podrá recuperarse.',
-    modeStandard:' Estándar', modeSport:' Deporte',
+    modeSimple:' Estándar', modeStandard:' Rifa', modeSport:' Rifa Deportiva',
     sportSelectorLabel:'Elegir un deporte',
     sports:{ hockey:'Hockey', soccer:'Fútbol', football:'Fútbol americano', baseball:'Béisbol', softball:'Sóftbol', basketball:'Baloncesto', waterpolo:'Waterpolo', volleyball:'Voleibol', ringette:'Ringette', curling:'Curling', gymnastics:'Gimnasia', golf:'Golf', figureskating:'Patinaje artístico', lacrosse:'Lacrosse', rugby:'Rugby', tennis:'Tenis', swimming:'Natación', afl:'AFL', wrestling:'Lucha / AMM', equestrian:'Ecuestre', ultimatefrisbee:'Ultimate', fencing:'Esgrima', dance:'Baile', boxing:'Boxeo', trackfield:'Atletismo' },
     ratioDims:{ '16:9':'Banner / Portada FB', '1:1':'Cuadrado Instagram', '4:5':'Retrato IG', '9:16':'Story / Reel', '1.91:1':'Anuncio FB / LinkedIn', 'letter':'Cartel impreso', 'custom':'Cualquier tamaño' },
@@ -277,7 +280,7 @@ const UI_STRINGS = {
     removeLogoBtn:'✕ Quitar logo',
     bpTitle:'Paleta de marca extraída — haga clic en un color para editarlo', bpReset:'↺ Volver a extraer',
     bpDark:'Oscuro', bpPrimary:'Primario', bpAccent:'Acento', bpMid:'Medio', bpLight:'Claro', bpLogoBg:'Fondo logo',
-    bpNote:'Estos colores se aplicarán a los elementos generados. Los cambios tienen mayor efecto en las Banderas Estándar; las Banderas Deportivas usan un tema específico del deporte con acentos de su paleta.',
+    bpNote:'Estos colores se aplicarán a los elementos generados. Los cambios tienen mayor efecto en las Banderas Estándar y de Rifa; las Banderas Deportivas usan un tema específico del deporte con acentos de su paleta.',
     labelPrizeImage:'Imagen del premio', labelPrizeImageHint:'(opcional, Rifa con Premio)',
     prizeUploadDefault:'Haga clic aquí para subir la imagen del premio…',
     prizeUploadNew:'Haga clic aquí para subir un nuevo archivo',
@@ -333,11 +336,13 @@ function applyUILanguage(lang) {
   _setText('step1Title', S.step1Title);
   _setText('step2Title', S.step2Title);
   _setText('step3Title', S.step3Title);
+  _setText('step4Title', S.step4Title);
 
   // Reset button label (localised)
   _setText('resetBtnLabel', S.resetBtn);
 
   // Mode buttons
+  _setText('modeSimpleLabel', S.modeSimple);
   _setText('modeStandardLabel', S.modeStandard);
   _setText('modeSportLabel', S.modeSport);
 
@@ -567,9 +572,23 @@ function commitCustomRatio() {
 
 function setMode(m) {
   currentMode = m;
+  document.getElementById('modeSimple').classList.toggle('active', m==='simple');
   document.getElementById('modeStandard').classList.toggle('active', m==='standard');
   document.getElementById('modeSport').classList.toggle('active', m==='sport');
   document.getElementById('sportSelectorSection').classList.toggle('visible', m==='sport');
+
+  // Re-filter the Promo Type dropdown for the new mode. Simple mode drops
+  // 50/50 and Prize since neither is meaningful on the single-shape design.
+  // If the current selection is no longer available, _rebuildTypeDropdown
+  // falls back to the first remaining option — we fire a change event so
+  // togglePrizeImage syncs the visible field groups (custom text inputs
+  // vs raffle-details fields).
+  const sel = document.getElementById('raffleType');
+  const prevType = sel?.value;
+  const curLang = TYPE_TO_LANG[prevType] || currentLang || 'en';
+  _rebuildTypeDropdown(curLang, prevType);
+  if (sel && sel.value !== prevType) sel.dispatchEvent(new Event('change'));
+
   scheduleAutoPreview();
 }
 
@@ -688,11 +707,17 @@ function _snapshotTypeOptions() {
   }));
 }
 
+// Custom-type option values (one per language). Used by Simple mode which
+// only exposes Custom Text — the raffle-specific headlines don't belong on
+// the single-shape template.
+const CUSTOM_TYPES = new Set(['custom', 'custom_fr', 'custom_es']);
+
 function _rebuildTypeDropdown(lang, preferValue) {
   _snapshotTypeOptions();
   const sel = document.getElementById('raffleType');
   if (!sel || !_allTypeOptions) return;
-  const opts = _allTypeOptions.filter(o => o.lang === lang);
+  let opts = _allTypeOptions.filter(o => o.lang === lang);
+  if (currentMode === 'simple') opts = opts.filter(o => CUSTOM_TYPES.has(o.value));
   sel.innerHTML = '';
   opts.forEach(({ value, text }) => {
     const opt = document.createElement('option');
@@ -1106,17 +1131,37 @@ function getRaffleStrings(raffleType) {
 }
 
 // ─── fitMainFontSz ────────────────────────────────────────────────────────────
-// Reduces Impact font size until the letter-spaced text fits within maxW.
-// Used by all standard-banner render paths so long French strings auto-shrink.
-function fitMainFontSz(ctx, text, lts, maxW, startSz) {
-  let sz = startSz;
-  while (sz > 18) {
+// Shrinks the letter-spaced Impact headline until it fits within maxW. Returns
+// { sz, lts } so callers can draw with the fitted letter-spacing — otherwise a
+// long Custom string like "THE BEST AWARDS DINNER EVER" gets crushed against a
+// fixed lts (e.g. 8px) that eats most of the available width at small sizes.
+// Callers used to receive just a number; the object return is a shape they can
+// destructure without breaking the old lts variable in their draw loops.
+function fitMainFontSz(ctx, text, ltsInput, maxW, startSz, minSz = 10) {
+  const startEff = Math.max(minSz, startSz);
+  let sz = startEff;
+  while (true) {
     ctx.font = `bold ${sz}px Impact,"Arial Black",sans-serif`;
-    const w = text.split('').reduce((s, l) => s + ctx.measureText(l).width + lts, 0) - lts;
-    if (w <= maxW) break;
-    sz = Math.round(sz * 0.90);
+    const lts = ltsInput * (sz / startEff);
+    const chars = text.split('');
+    const w = chars.reduce((s, l) => s + ctx.measureText(l).width + lts, 0) - lts;
+    if (w <= maxW || sz <= minSz) return { sz, lts };
+    sz = Math.max(minSz, Math.round(sz * 0.90));
   }
-  return sz;
+}
+
+// ─── fitBoldFontSz ────────────────────────────────────────────────────────────
+// Same shrink-until-it-fits pattern for the Helvetica bold sub-headline. Sub
+// text was previously drawn at a fixed size so long Custom Text subheadings
+// bled past the message zone / canvas edge. Returns the largest size that
+// actually fits (or minSz if nothing does).
+function fitBoldFontSz(ctx, text, maxW, startSz, minSz = 10) {
+  let sz = Math.max(minSz, startSz);
+  while (true) {
+    ctx.font = `bold ${sz}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+    if (ctx.measureText(text).width <= maxW || sz <= minSz) return sz;
+    sz = Math.max(minSz, Math.round(sz * 0.92));
+  }
 }
 
 
@@ -1693,8 +1738,8 @@ async function applyBannerState(state) {
   if (f.qrUrl) updateQrPreview(f.qrUrl);
   setVal('customMainText', f.customMainText);
   setVal('customSubText',  f.customSubText);
-  updateCustomCounter('customMainText', 'customMainCounter', 20);
-  updateCustomCounter('customSubText',  'customSubCounter',  20);
+  updateCustomCounter('customMainText', 'customMainCounter', 40);
+  updateCustomCounter('customSubText',  'customSubCounter',  40);
 
   // 2b. Packages — clear existing rows, then rebuild.
   const pc = document.getElementById('packageContainer');
@@ -4963,6 +5008,7 @@ function drawSportVignette(ctx, W, H, rect, corners) {
 // ─── MAIN GENERATE ────────────────────────────────────────────────────────────
 function _runGeneratePoster() {
   if (currentMode==='sport')  generateSportPoster();
+  else if (currentMode==='simple') generateSimplePoster();
   else generateStandardPoster();
 }
 
@@ -5056,12 +5102,17 @@ function generateStandardPoster() {
         lx=margin; ly=margin; rx=margin+tw+gap; ry=margin;
       }
       _ticketLayout = {lx, ly, rx, ry, tw, th, bandH: 0};
-      const lWhite=hasWhiteBackground(img);
-      const rWhite=preloadedPrizeImg&&hasWhiteBackground(preloadedPrizeImg);
+      // Fill decision: if EITHER image has a white background, both tickets
+      // switch to pure white so the two tickets stay visually consistent.
+      // (Previously the left ticket could go white for a white-bg logo while
+      // the right stayed cream, making the pair look mismatched.)
+      const anyWhiteBg = hasWhiteBackground(img) ||
+        (preloadedPrizeImg && hasWhiteBackground(preloadedPrizeImg));
+      const ticketFill = anyWhiteBg ? '#ffffff' : null;
       const lSide = isPortrait ? 'top' : 'left';
       const rSide = isPortrait ? 'bottom' : 'right';
-      drawStdTicket(ctx,lx,ly,tw,th,lSide,lWhite?'#ffffff':null);
-      drawStdTicket(ctx,rx,ry,tw,th,rSide,rWhite?'#ffffff':null);
+      drawStdTicket(ctx,lx,ly,tw,th,lSide,ticketFill);
+      drawStdTicket(ctx,rx,ry,tw,th,rSide,ticketFill);
       // Logo-colour border around tickets — Letter format only
       if (isLetter) {
         const cr22 = 22;
@@ -5175,22 +5226,31 @@ function generateStandardPoster() {
         const _sq_S = getRaffleStrings(raffleType);
         const mainTxt2 = _sq_S.mainTxt;
         const lts2 = (raffleType==='5050' || raffleType==='tirage5050' || raffleType==='es5050') ? 6*sm2raw : 8*sm2raw;
-        const _sqFittedSz2 = fitMainFontSz(ctx, mainTxt2, lts2, tw - 60, mainFontSz2);
+        const { sz: _sqFittedSz2, lts: _sqFittedLts2 } = fitMainFontSz(ctx, mainTxt2, lts2, tw - 60, mainFontSz2);
         ctx.font = `bold ${_sqFittedSz2}px Impact,"Arial Black",sans-serif`;
-        const ltw2 = mainTxt2.split('').reduce((s,l) => s + ctx.measureText(l).width + lts2, 0) - lts2;
+        const ltw2 = mainTxt2.split('').reduce((s,l) => s + ctx.measureText(l).width + _sqFittedLts2, 0) - _sqFittedLts2;
         let xp2 = rcx - ltw2/2;
         mainTxt2.split('').forEach(l => {
           const lw = ctx.measureText(l).width;
           if (!isSingleColored) ctx.strokeText(l, xp2+lw/2, rtyDraw);
           ctx.fillText(l, xp2+lw/2, rtyDraw);
-          xp2 += lw + lts2;
+          xp2 += lw + _sqFittedLts2;
         });
-        const subY2 = rtyDraw + subGap2;
-        ctx.font = `bold ${subFontSz2}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-        if (!isSingleColored) ctx.strokeText(_sq_S.subTxt, rcx, subY2);
-        ctx.fillText(_sq_S.subTxt, rcx, subY2);
+        // Shrink sub width so long Custom subheadings stay inside the ticket.
+        const fittedSub2 = _sq_S.subTxt
+          ? fitBoldFontSz(ctx, _sq_S.subTxt, tw - 60, subFontSz2, 10)
+          : subFontSz2;
+        // subY: max of natural gap and a guard that keeps sub clear of main.
+        const _baseSubY2 = rtyDraw + subGap2;
+        const _minSubY2  = rtyDraw + Math.round(_sqFittedSz2 * 0.28) + Math.round(fittedSub2 * 0.72) + 8;
+        const subY2 = Math.max(_baseSubY2, _minSubY2);
+        ctx.font = `bold ${fittedSub2}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+        if (_sq_S.subTxt) {
+          if (!isSingleColored) ctx.strokeText(_sq_S.subTxt, rcx, subY2);
+          ctx.fillText(_sq_S.subTxt, rcx, subY2);
+        }
         drawOrnDiv(ctx, rcx, subY2 + ornGap2, tw*0.3, primaryColor);
-        let dsY2 = subY2 + Math.round(subFontSz2 * 1.4);  // extra gap below ornament so Ticket Packages has breathing room
+        let dsY2 = subY2 + Math.round(fittedSub2 * 1.4);  // extra gap below ornament so Ticket Packages has breathing room
 
         if (hasPrize) {
           const pf = document.getElementById('prizeImageUpload').files[0];
@@ -5304,29 +5364,36 @@ function generateStandardPoster() {
           const _c2_S    = getRaffleStrings(raffleType);
           const mainTxt2 = _c2_S.mainTxt;
           const lts2c = 5;
-          const _c2FittedSz = fitMainFontSz(ctx, mainTxt2, lts2c, avW - 20, mFS2);
+          const { sz: _c2FittedSz, lts: _c2FittedLts } = fitMainFontSz(ctx, mainTxt2, lts2c, avW - 20, mFS2);
 
           // Text: anchor with padding from ticket top
           const mY2 = ry + pad + _c2FittedSz;
           ctx.fillStyle = primaryColor; ctx.textAlign = 'center';
           ctx.strokeStyle = secondaryColor; ctx.lineWidth = 0.5;
           ctx.font = `bold ${_c2FittedSz}px Impact,"Arial Black",sans-serif`;
-          const ltw2c = mainTxt2.split('').reduce((s,l) => s + ctx.measureText(l).width + lts2c, 0) - lts2c;
+          const ltw2c = mainTxt2.split('').reduce((s,l) => s + ctx.measureText(l).width + _c2FittedLts, 0) - _c2FittedLts;
           let xp2c = rcx2 - ltw2c / 2;
           mainTxt2.split('').forEach(l => {
             const lw = ctx.measureText(l).width;
             if (!isSingleColored) ctx.strokeText(l, xp2c + lw/2, mY2);
             ctx.fillText(l, xp2c + lw/2, mY2);
-            xp2c += lw + lts2c;
+            xp2c += lw + _c2FittedLts;
           });
-          const sY2  = mY2 + Math.round(_c2FittedSz * 0.52);
-          ctx.font = `bold ${sFS2}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-          if (!isSingleColored) ctx.strokeText(_c2_S.subTxt, rcx2, sY2);
-          ctx.fillText(_c2_S.subTxt, rcx2, sY2);
-          drawOrnDiv(ctx, rcx2, sY2 + Math.round(sFS2 * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
+          const _fittedSFS2 = _c2_S.subTxt
+            ? fitBoldFontSz(ctx, _c2_S.subTxt, avW - 20, sFS2, 10)
+            : sFS2;
+          const _baseSY2 = mY2 + Math.round(_c2FittedSz * 0.52);
+          const _minSY2  = mY2 + Math.round(_c2FittedSz * 0.28) + Math.round(_fittedSFS2 * 0.72) + 8;
+          const sY2 = Math.max(_baseSY2, _minSY2);
+          ctx.font = `bold ${_fittedSFS2}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+          if (_c2_S.subTxt) {
+            if (!isSingleColored) ctx.strokeText(_c2_S.subTxt, rcx2, sY2);
+            ctx.fillText(_c2_S.subTxt, rcx2, sY2);
+          }
+          drawOrnDiv(ctx, rcx2, sY2 + Math.round(_fittedSFS2 * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
 
           // Image zone starts below actual text+ornament, not a fixed percentage
-          const _textEnd2 = sY2 + Math.round(sFS2 * 0.5) + 15;
+          const _textEnd2 = sY2 + Math.round(_fittedSFS2 * 0.5) + 15;
           const imgTop2 = Math.max(ry + txtZoneH, _textEnd2);
           const imgBot2 = ry + th - pad;
           const imgH2   = Math.max(20, imgBot2 - imgTop2);
@@ -5365,20 +5432,27 @@ function generateStandardPoster() {
           const _c3_S    = getRaffleStrings(raffleType);
           const mainTxt3 = _c3_S.mainTxt;
           const lts3c = 5;
-          const _c3FittedSz = fitMainFontSz(ctx, mainTxt3, lts3c, avW - 20, mFS3);
+          const { sz: _c3FittedSz, lts: _c3FittedLts } = fitMainFontSz(ctx, mainTxt3, lts3c, avW - 20, mFS3);
           const mY3 = ry + pad + _c3FittedSz;
           ctx.fillStyle = primaryColor; ctx.textAlign = 'center';
           ctx.strokeStyle = secondaryColor; ctx.lineWidth = 0.5;
           ctx.font = `bold ${_c3FittedSz}px Impact,"Arial Black",sans-serif`;
-          const ltw3c = mainTxt3.split('').reduce((s,l) => s + ctx.measureText(l).width + lts3c, 0) - lts3c;
+          const ltw3c = mainTxt3.split('').reduce((s,l) => s + ctx.measureText(l).width + _c3FittedLts, 0) - _c3FittedLts;
           let xp3c = rcx2 - ltw3c / 2;
-          mainTxt3.split('').forEach(l => { const lw=ctx.measureText(l).width; if(!isSingleColored)ctx.strokeText(l,xp3c+lw/2,mY3); ctx.fillText(l,xp3c+lw/2,mY3); xp3c+=lw+lts3c; });
-          const sY3c = mY3 + Math.round(_c3FittedSz * 0.52);
-          ctx.font = `bold ${sFS3}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-          if (!isSingleColored) ctx.strokeText(_c3_S.subTxt, rcx2, sY3c);
-          ctx.fillText(_c3_S.subTxt, rcx2, sY3c);
-          drawOrnDiv(ctx, rcx2, sY3c + Math.round(sFS3 * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
-          const dsY3c = sY3c + Math.round(sFS3 * 1.3) + 12;
+          mainTxt3.split('').forEach(l => { const lw=ctx.measureText(l).width; if(!isSingleColored)ctx.strokeText(l,xp3c+lw/2,mY3); ctx.fillText(l,xp3c+lw/2,mY3); xp3c+=lw+_c3FittedLts; });
+          const _fittedSFS3 = _c3_S.subTxt
+            ? fitBoldFontSz(ctx, _c3_S.subTxt, avW - 20, sFS3, 10)
+            : sFS3;
+          const _baseSY3c = mY3 + Math.round(_c3FittedSz * 0.52);
+          const _minSY3c  = mY3 + Math.round(_c3FittedSz * 0.28) + Math.round(_fittedSFS3 * 0.72) + 8;
+          const sY3c = Math.max(_baseSY3c, _minSY3c);
+          ctx.font = `bold ${_fittedSFS3}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+          if (_c3_S.subTxt) {
+            if (!isSingleColored) ctx.strokeText(_c3_S.subTxt, rcx2, sY3c);
+            ctx.fillText(_c3_S.subTxt, rcx2, sY3c);
+          }
+          drawOrnDiv(ctx, rcx2, sY3c + Math.round(_fittedSFS3 * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
+          const dsY3c = sY3c + Math.round(_fittedSFS3 * 1.3) + 12;
           drawStdDetails(ctx, showDetails, rx, tw, ry, th, rcx2, dsY3c, raffleType, primaryColor);
           ctx.restore();
           return;
@@ -5396,22 +5470,29 @@ function generateStandardPoster() {
         ctx.fillStyle = primaryColor; ctx.textAlign = 'center';
         ctx.strokeStyle = secondaryColor; ctx.lineWidth = 0.5;
         const lts3 = (raffleType === '5050' || raffleType === 'tirage5050' || raffleType === 'es5050') ? 6 : 8;
-        const _c3bFittedSz = fitMainFontSz(ctx, mainTxt3, lts3, avW - 20, mFS3);
+        const { sz: _c3bFittedSz, lts: _c3bFittedLts } = fitMainFontSz(ctx, mainTxt3, lts3, avW - 20, mFS3);
         ctx.font = `bold ${_c3bFittedSz}px Impact,"Arial Black",sans-serif`;
-        const ltw3 = mainTxt3.split('').reduce((s,l) => s + ctx.measureText(l).width + lts3, 0) - lts3;
+        const ltw3 = mainTxt3.split('').reduce((s,l) => s + ctx.measureText(l).width + _c3bFittedLts, 0) - _c3bFittedLts;
         let xp3 = rcx2 - ltw3 / 2;
         mainTxt3.split('').forEach(l => {
           const lw = ctx.measureText(l).width;
           if (!isSingleColored) ctx.strokeText(l, xp3 + lw/2, rY3);
           ctx.fillText(l, xp3 + lw/2, rY3);
-          xp3 += lw + lts3;
+          xp3 += lw + _c3bFittedLts;
         });
-        const subY3 = rY3 + Math.round(_c3bFittedSz * 0.52);
-        ctx.font = `bold ${sFS3}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-        if (!isSingleColored) ctx.strokeText(_c3b_S.subTxt, rcx2, subY3);
-        ctx.fillText(_c3b_S.subTxt, rcx2, subY3);
-        drawOrnDiv(ctx, rcx2, subY3 + Math.round(sFS3 * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
-        const dsY3 = subY3 + Math.round(sFS3 * 0.9) + ornGap3;
+        const _fittedSFS3b = _c3b_S.subTxt
+          ? fitBoldFontSz(ctx, _c3b_S.subTxt, avW - 20, sFS3, 10)
+          : sFS3;
+        const _baseSubY3 = rY3 + Math.round(_c3bFittedSz * 0.52);
+        const _minSubY3  = rY3 + Math.round(_c3bFittedSz * 0.28) + Math.round(_fittedSFS3b * 0.72) + 8;
+        const subY3 = Math.max(_baseSubY3, _minSubY3);
+        ctx.font = `bold ${_fittedSFS3b}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+        if (_c3b_S.subTxt) {
+          if (!isSingleColored) ctx.strokeText(_c3b_S.subTxt, rcx2, subY3);
+          ctx.fillText(_c3b_S.subTxt, rcx2, subY3);
+        }
+        drawOrnDiv(ctx, rcx2, subY3 + Math.round(_fittedSFS3b * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
+        const dsY3 = subY3 + Math.round(_fittedSFS3b * 0.9) + ornGap3;
         drawStdDetails(ctx, showDetails, rx, tw, ry, th, rcx2, dsY3, raffleType, primaryColor);
         ctx.restore();
         return;
@@ -5494,25 +5575,35 @@ function generateStandardPoster() {
       const _ns_S = getRaffleStrings(raffleType);
       const mainTxt=_ns_S.mainTxt;
       const lts=(raffleType==='5050'||raffleType==='tirage5050'||raffleType==='es5050')?6*sm:8*sm;
-      const _nsFittedSz = fitMainFontSz(ctx, mainTxt, lts, tw - 60, mainFontSz);
+      const { sz: _nsFittedSz, lts: _nsFittedLts } = fitMainFontSz(ctx, mainTxt, lts, tw - 60, mainFontSz);
       ctx.font=`bold ${_nsFittedSz}px Impact,"Arial Black",sans-serif`;
-      const ltw=mainTxt.split('').reduce((s,l)=>s+ctx.measureText(l).width+lts,0)-lts;
+      const ltw=mainTxt.split('').reduce((s,l)=>s+ctx.measureText(l).width+_nsFittedLts,0)-_nsFittedLts;
       let xp=rtx-ltw/2;
-      mainTxt.split('').forEach(l=>{const lw=ctx.measureText(l).width;if(!isSingleColored)ctx.strokeText(l,xp+lw/2,rty);ctx.fillText(l,xp+lw/2,rty);xp+=lw+lts;});
+      mainTxt.split('').forEach(l=>{const lw=ctx.measureText(l).width;if(!isSingleColored)ctx.strokeText(l,xp+lw/2,rty);ctx.fillText(l,xp+lw/2,rty);xp+=lw+_nsFittedLts;});
       // Portrait: cap sub relative to the fitted main so a small fitted main
       // (long Custom Text) doesn't get overrun by a fixed-size sub. Also floor
       // subY to guarantee a gap between main's descent and sub's ascent —
       // the previous formula (0.55 × fitted main) alone was too tight once
       // fitMainFontSz shrank the main below the sub.
-      const subFontSz = isPortrait
+      const subFontSzRaw = isPortrait
         ? Math.min(Math.round(th*0.10), Math.round(_nsFittedSz*0.55))
         : Math.round(_nsFittedSz*0.40);
+      // Shrink sub width so long Custom subheadings (now up to 40 chars)
+      // stay inside the ticket instead of bleeding past its scallop edge.
+      const subFontSz = _ns_S.subTxt
+        ? fitBoldFontSz(ctx, _ns_S.subTxt, tw - 60, subFontSzRaw, 12)
+        : subFontSzRaw;
       const _baseSubY = rty + Math.round(_nsFittedSz * 0.55 * sm);
       const _minSubY  = rty + Math.round(_nsFittedSz * 0.28) + Math.round(subFontSz * 0.72) + 8;
-      const subY = isPortrait ? Math.max(_baseSubY, _minSubY) : _baseSubY;
+      // Guard sub against overlapping main in BOTH orientations — the
+      // landscape branch was previously unprotected, so a shrunk main
+      // (long promo text) could be swallowed by sub.
+      const subY = Math.max(_baseSubY, _minSubY);
       ctx.font=`bold ${subFontSz}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-      if(!isSingleColored)ctx.strokeText(_ns_S.subTxt,rtx,subY);
-      ctx.fillText(_ns_S.subTxt,rtx,subY);
+      if(_ns_S.subTxt){
+        if(!isSingleColored)ctx.strokeText(_ns_S.subTxt,rtx,subY);
+        ctx.fillText(_ns_S.subTxt,rtx,subY);
+      }
       drawOrnDiv(ctx,rtx,subY+Math.round(18*sm),tw*0.3,primaryColor);
       let dsY=subY+Math.round(subFontSz*1.3);
       if((raffleType==='prize'||raffleType==='tirage'||raffleType==='esrifa')&&hasPrize){
@@ -5549,6 +5640,323 @@ function generateStandardPoster() {
   }
   if(hasPrizeFileEarly){const ep=new Image();ep.onload=()=>doRender(ep);ep.src=URL.createObjectURL(prizeFileEarly);}
   else doRender(null);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// SIMPLE POSTER — single-shape banner (mode: 'simple', UI label: "Standard")
+// Same functional content as the raffle-ticket template (logo, org, promo
+// type, prize image, details, QR) presented on one rounded card instead of
+// two scalloped tickets. Design accents: leading-edge accent bar in the
+// primary brand colour, a small corner tab in the accent colour, and a
+// hairline inner rule that separates the identity zone (logo + org) from
+// the message zone (headline + details).
+// ═══════════════════════════════════════════════════════════════════════
+function generateSimplePoster() {
+  const state = readFormState();
+  const canvas = dom('preview');
+  const {W:cW, H:cH} = RATIOS[currentRatio] || RATIOS['16:9'];
+  canvas.width = cW; canvas.height = cH;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  const raffleType = state.raffleType;
+  const orgName = state.orgName || getRaffleStrings(raffleType).orgFallback;
+  const showDetails = state.showDetails;
+  const file = state.logoFile;
+
+  const prizeFileEarly = (raffleType==='prize' || raffleType==='tirage' || raffleType==='esrifa') ? state.prizeFile : null;
+  const hasPrizeFileEarly = prizeFileEarly && state.prizeInputActive;
+
+  function doRender(preloadedPrizeImg) {
+    const img = new Image();
+    img.onload = () => {
+      const { primaryColor, secondaryColor, accentColor, isSingleColored } = deriveStandardColors(img);
+      const W = canvas.width, H = canvas.height;
+      const isPortrait = H >= W * 0.9;
+      const isLetter   = currentRatio === 'letter';
+      const noLogo     = !!img._synthetic;
+
+      // ── BACKGROUND: soft brand gradient (same family as Raffle) ──────────
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, secondaryColor);
+      g.addColorStop(0.5, accentColor);
+      g.addColorStop(1, primaryColor);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const vig = ctx.createRadialGradient(W/2, H/2, H*0.2, W/2, H/2, H*0.9);
+      vig.addColorStop(0, 'rgba(0,0,0,0)');
+      vig.addColorStop(1, 'rgba(0,0,0,0.35)');
+      ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
+
+      // ── SINGLE CARD ──────────────────────────────────────────────────────
+      const margin = isLetter ? 150 : Math.max(40, Math.round(Math.min(W, H) * 0.045));
+      const cx = margin, cy = margin;
+      const cw = W - margin * 2, ch = H - margin * 2;
+      const cr = Math.min(28, Math.round(Math.min(cw, ch) * 0.03) + 10);
+
+      // finaliseDownload uses this rect to place the QR pill in the bottom
+      // right; anchor it to the card so the QR lands inside the card.
+      _ticketLayout = { rx: cx, ry: cy, tw: cw, th: ch, bandH: 0, lx: cx, ly: cy };
+
+      // Drop shadow pass
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.32)';
+      ctx.shadowBlur = 40;
+      ctx.shadowOffsetY = 14;
+      ctx.fillStyle = '#ffffff';
+      roundRect(ctx, cx, cy, cw, ch, cr);
+      ctx.fill();
+      ctx.restore();
+
+      // Card body — warm off-white with a very subtle vertical gradient
+      ctx.save();
+      const cardGrad = ctx.createLinearGradient(cx, cy, cx, cy + ch);
+      cardGrad.addColorStop(0, '#ffffff');
+      cardGrad.addColorStop(1, '#f7f5f0');
+      ctx.fillStyle = cardGrad;
+      roundRect(ctx, cx, cy, cw, ch, cr);
+      ctx.fill();
+      ctx.restore();
+
+      // ── ACCENT BAR (primary color) along leading edge ────────────────────
+      const barThick = Math.max(10, Math.round(Math.min(cw, ch) * 0.018));
+      ctx.save();
+      roundRect(ctx, cx, cy, cw, ch, cr);
+      ctx.clip();
+      ctx.fillStyle = primaryColor;
+      if (isPortrait) ctx.fillRect(cx, cy, cw, barThick);
+      else            ctx.fillRect(cx, cy, barThick, ch);
+      // Subtle darker inner line where bar meets card, for definition
+      ctx.fillStyle = 'rgba(0,0,0,0.15)';
+      if (isPortrait) ctx.fillRect(cx, cy + barThick, cw, 1);
+      else            ctx.fillRect(cx + barThick, cy, 1, ch);
+      ctx.restore();
+
+      // ── CORNER TAB — small triangle in accent colour, bottom-right ──────
+      ctx.save();
+      roundRect(ctx, cx, cy, cw, ch, cr);
+      ctx.clip();
+      const notch = Math.max(28, Math.round(Math.min(cw, ch) * 0.045));
+      ctx.fillStyle = accentColor;
+      ctx.beginPath();
+      ctx.moveTo(cx + cw, cy + ch - notch);
+      ctx.lineTo(cx + cw, cy + ch);
+      ctx.lineTo(cx + cw - notch, cy + ch);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // ── HAIRLINE INNER BORDER ────────────────────────────────────────────
+      const inset = Math.max(10, Math.round(Math.min(cw, ch) * 0.014));
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0,0,0,0.09)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, cx + inset, cy + inset, cw - inset * 2, ch - inset * 2, Math.max(2, cr - inset));
+      ctx.stroke();
+      ctx.restore();
+
+      // ── CONTENT AREA ─────────────────────────────────────────────────────
+      // Nudge content inward past the accent bar and the hairline.
+      const cPad = Math.max(20, Math.round(Math.min(cw, ch) * 0.035));
+      const contentX = isPortrait ? cx + inset + cPad : cx + barThick + inset + cPad;
+      const contentY = isPortrait ? cy + barThick + inset + cPad : cy + inset + cPad;
+      const contentW = cw - (isPortrait ? inset * 2 + cPad * 2 : barThick + inset * 2 + cPad * 2);
+      const contentH = ch - (isPortrait ? barThick + inset * 2 + cPad * 2 : inset * 2 + cPad * 2);
+
+      // Decide zone split up-front — a compact layout (details or prize image
+      // in the message zone) needs more room for the message; a plain layout
+      // gives the identity zone (logo + org) a much bigger share so the logo
+      // can fill the whitespace.
+      const _hasPrizeEarly = (raffleType === 'prize' || raffleType === 'tirage' || raffleType === 'esrifa') &&
+        document.getElementById('prizeImageUpload').files[0] &&
+        !document.getElementById('prizeImageUpload').disabled;
+      const compactLayout = showDetails || _hasPrizeEarly;
+
+      // ── ZONE SPLIT: identity (logo+org) vs message (headline+details) ──
+      let idX, idY, idW, idH, msgX, msgY, msgW, msgH;
+      const dividerColor = 'rgba(0,0,0,0.10)';
+
+      if (isPortrait) {
+        // Stacked: identity band on top, message below.
+        const idFrac = compactLayout ? 0.30 : 0.42;
+        const gap = Math.round(contentH * 0.02);
+        idX = contentX; idY = contentY;
+        idW = contentW; idH = Math.round(contentH * idFrac);
+        msgX = contentX; msgY = idY + idH + gap;
+        msgW = contentW; msgH = contentH - idH - gap;
+        // Horizontal divider
+        ctx.save();
+        ctx.strokeStyle = dividerColor; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(contentX + contentW * 0.10, idY + idH + gap / 2);
+        ctx.lineTo(contentX + contentW * 0.90, idY + idH + gap / 2);
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        // Side-by-side: identity left, message right.
+        const idFrac = compactLayout ? 0.30 : 0.38;
+        const gap = Math.round(contentW * 0.03);
+        idX = contentX; idY = contentY;
+        idW = Math.round(contentW * idFrac); idH = contentH;
+        msgX = idX + idW + gap;
+        msgY = contentY;
+        msgW = contentW - idW - gap;
+        msgH = contentH;
+        // Vertical divider
+        ctx.save();
+        ctx.strokeStyle = dividerColor; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(idX + idW + gap / 2, contentY + contentH * 0.10);
+        ctx.lineTo(idX + idW + gap / 2, contentY + contentH * 0.90);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // ── IDENTITY ZONE: logo + org name ───────────────────────────────────
+      // Compute org name first so we know how much vertical space it needs,
+      // then let the logo take whatever remains in the identity zone (up to
+      // ~92% of the zone width). This makes the logo fill the available
+      // whitespace instead of being capped at a small fraction of min(idW,idH).
+      const orgStartFS = noLogo
+        ? Math.max(20, Math.round(Math.min(idW, idH) * 0.14))
+        : Math.max(14, Math.round(Math.min(idW, idH) * 0.078));
+      const orgFit = fitText(ctx, orgName.toUpperCase(), idW - 20, orgStartFS, 11);
+      const orgLines = orgFit.lines.length;
+      const orgBlockH = orgFit.fontSize + orgFit.lineHeight * (orgLines - 1);
+
+      const spacing   = Math.round(Math.min(idW, idH) * 0.04);
+      const zonePad   = Math.max(6, Math.round(Math.min(idW, idH) * 0.03));
+      // Reserve org height + spacing + a small padding buffer at the zone edges
+      const availLogoH = noLogo
+        ? 0
+        : Math.max(24, idH - orgBlockH - spacing - zonePad * 2);
+      const availLogoW = noLogo ? 0 : Math.max(24, idW - zonePad * 2);
+      const sc = noLogo ? 0 : Math.min(availLogoW / img.width, availLogoH / img.height);
+      const logoW = img.width  * sc;
+      const logoH = img.height * sc;
+
+      const idBlockH  = (noLogo ? 0 : logoH + spacing) + orgBlockH;
+      const idBlockTop = idY + (idH - idBlockH) / 2;
+      const idCx      = idX + idW / 2;
+
+      // Logo
+      drawLogoOnCard(ctx, img, idCx - logoW / 2, idBlockTop, logoW, logoH);
+
+      // Org name — dark stroke for readability on the off-white card
+      const orgBaseY = idBlockTop + (noLogo ? 0 : logoH + spacing) + orgFit.fontSize;
+      ctx.font = `bold ${orgFit.fontSize}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.strokeStyle = isDarkPrimary(primaryColor) ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.32)';
+      ctx.lineWidth = Math.max(2, orgFit.fontSize * 0.06); ctx.lineJoin = 'round';
+      strokeFitLines(ctx, orgFit.lines, idCx, orgBaseY, orgFit.lineHeight);
+      ctx.fillStyle = primaryColor;
+      ctx.shadowColor = isDarkPrimary(primaryColor) ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.18)';
+      ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+      drawFitLines(ctx, orgFit.lines, idCx, orgBaseY, orgFit.lineHeight);
+      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+      // Licence line pinned to the bottom of the identity zone
+      if (showDetails) {
+        const lic = document.getElementById('licenceNumber').value;
+        if (lic) {
+          const licFS = Math.max(11, Math.round(Math.min(idW, idH) * 0.035));
+          ctx.font = `${licFS}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+          ctx.fillStyle = primaryColor; ctx.globalAlpha = 0.65;
+          ctx.textAlign = 'center';
+          ctx.fillText(`Licence ${lic}`, idCx, idY + idH - 4);
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      // ── MESSAGE ZONE: promo type headline + prize image + details ────────
+      const msgCx  = msgX + msgW / 2;
+      const S_r    = getRaffleStrings(raffleType);
+      const hasPrize = _hasPrizeEarly;
+
+      // Headline zone height reserves more room when there's no details/prize
+      const compact = compactLayout;
+      const headlineZoneH = compact ? Math.round(msgH * 0.30) : Math.round(msgH * 0.55);
+      const mainFS = Math.round(headlineZoneH * 0.55);
+      const subFSTarget = Math.round(headlineZoneH * 0.22);
+      const lts    = (raffleType === '5050' || raffleType === 'tirage5050' || raffleType === 'es5050') ? 6 : 8;
+      const mainTxt = S_r.mainTxt;
+      const subTxt  = S_r.subTxt;
+      const { sz: fittedMain, lts: fittedLts } = fitMainFontSz(ctx, mainTxt, lts, msgW - 40, mainFS);
+      // Shrink the sub so long Custom subheadings (now up to 40 chars) stay
+      // inside the message zone instead of bleeding past the card edge.
+      const fittedSub = subTxt
+        ? fitBoldFontSz(ctx, subTxt, msgW - 40, subFSTarget, 10)
+        : subFSTarget;
+
+      // Anchor: near top when compact (leave room for details/prize), else centred
+      const gapMainToSub = Math.round(fittedMain * 0.28) + Math.round(fittedSub * 0.72) + 10;
+      const headlineTop = compact
+        ? msgY + Math.round(msgH * 0.05)
+        : msgY + (msgH - (fittedMain + fittedSub + gapMainToSub + 32)) / 2;
+      const mainY = headlineTop + fittedMain;
+
+      ctx.fillStyle = primaryColor;
+      ctx.textAlign = 'center';
+      ctx.strokeStyle = secondaryColor; ctx.lineWidth = 0.5;
+      ctx.font = `bold ${fittedMain}px Impact,"Arial Black",sans-serif`;
+      const ltw = mainTxt.split('').reduce((s, l) => s + ctx.measureText(l).width + fittedLts, 0) - fittedLts;
+      let xp = msgCx - ltw / 2;
+      mainTxt.split('').forEach(l => {
+        const lw = ctx.measureText(l).width;
+        if (!isSingleColored) ctx.strokeText(l, xp + lw / 2, mainY);
+        ctx.fillText(l, xp + lw / 2, mainY);
+        xp += lw + fittedLts;
+      });
+      // Sub Y: max of the "natural" baseline offset and a minimum guard that
+      // keeps sub's cap-top clear of main's descent even when fitMainFontSz
+      // shrinks main hard for a long promo string.
+      const _baseSubY = mainY + Math.round(fittedMain * 0.55);
+      const _minSubY  = mainY + gapMainToSub;
+      const subY = Math.max(_baseSubY, _minSubY);
+      ctx.font = `bold ${fittedSub}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+      if (subTxt) {
+        if (!isSingleColored) ctx.strokeText(subTxt, msgCx, subY);
+        ctx.fillText(subTxt, msgCx, subY);
+      }
+      drawOrnDiv(ctx, msgCx, subY + Math.round(fittedSub * 0.7) + 6, Math.min(msgW * 0.32, 180), primaryColor);
+      let dsY = subY + Math.round(fittedSub * 1.5);
+
+      // Prize image → details underneath
+      if (hasPrize) {
+        const pf = document.getElementById('prizeImageUpload').files[0];
+        const pi = preloadedPrizeImg || new Image();
+        const drawPrize = () => {
+          const mpw = msgW - 60;
+          const maxH = showDetails
+            ? Math.min(200, Math.round(msgH * 0.28))
+            : Math.max(120, Math.round((msgY + msgH) - dsY - 40));
+          const ia = pi.width / pi.height, ba = mpw / maxH;
+          let pw, ph;
+          if (ia > ba) { pw = mpw; ph = pw / ia; } else { ph = maxH; pw = ph * ia; }
+          ctx.drawImage(pi, msgCx - pw / 2, dsY, pw, ph);
+          dsY = dsY + ph + 14;
+          drawStdDetails(ctx, showDetails, msgX, msgW, msgY, msgH, msgCx, dsY, raffleType, primaryColor);
+        };
+        if (preloadedPrizeImg) drawPrize();
+        else { pi.onload = drawPrize; pi.src = URL.createObjectURL(pf); }
+        return;
+      }
+
+      drawStdDetails(ctx, showDetails, msgX, msgW, msgY, msgH, msgCx, dsY, raffleType, primaryColor);
+    };
+    if (file) {
+      img.src = URL.createObjectURL(file);
+    } else {
+      img._synthetic = true;
+      img.src = TRANSPARENT_1X1_PNG;
+    }
+  }
+  if (hasPrizeFileEarly) {
+    const ep = new Image();
+    ep.onload = () => doRender(ep);
+    ep.src = URL.createObjectURL(prizeFileEarly);
+  } else {
+    doRender(null);
+  }
 }
 
 function drawStdTicket(ctx,x,y,w,h,side,fill){
@@ -5938,6 +6346,11 @@ function generateSportPoster() {
     ctx.save(); scalloppedRect(ctx,rx,ry,tw,th,cr,rSide); ctx.clip();
     const rShape=drawSportBackdrop(ctx,rx,ry,tw,th,currentSport,accentColor,darkestColor,rCy,rMaxR, window.brandPalette?.shapefill||'#ffffff'); ctx.restore();
 
+    // Expose shape geometry so finaliseDownload can nudge the QR pill away
+    // from the sport shape rather than overlapping its bottom-right arc.
+    _ticketLayout.lShape = { cx: lShape.cx, cy: lShape.cy, R: lShape.R };
+    _ticketLayout.rShape = { cx: rShape.cx, cy: rShape.cy, R: rShape.R };
+
     // ── isYellowGold: returns true if a colour is in the warm yellow/gold range ──
     // Yellow/gold is problematic on light ticket backgrounds (washes out) AND
     // on dark sport backgrounds (blends with field markings like ice/grass lines).
@@ -6307,16 +6720,68 @@ function drawRaffleTextInShape(ctx, rcx, shapeInfo, raffleType, accentTextCol, a
   const _shape_S = getRaffleStrings(raffleType);
   const mainTxt = _shape_S.mainTxt;
   const subTxt  = _shape_S.subTxt;
+  const isCustom = (raffleType === 'custom' || raffleType === 'custom_fr' || raffleType === 'custom_es');
 
-  // Size text to ~58% of shape radius — constrain using ACTUAL rendered width (letter-spaced)
-  const ls = (raffleType==='5050' || raffleType==='tirage5050' || raffleType==='es5050') ? 4 : 6;
-  let mfs = Math.round(R * 0.58);
-  ctx.font = `900 ${mfs}px Impact,"Arial Black",sans-serif`;
-  const _rendW = () => mainTxt.split('').reduce((s,l)=>s+ctx.measureText(l).width+ls,0)-ls;
-  while(_rendW() > R*1.30 && mfs>24){ mfs-=2; ctx.font=`900 ${mfs}px Impact,"Arial Black",sans-serif`; }
-  const sfs=Math.round(mfs*0.42), gap=Math.round(mfs*0.1);
-  const totalH=mfs+gap+sfs;
-  const mainY=cy-totalH/2+mfs, subY=mainY+gap+sfs;
+  // Size text to ~58% of shape radius — constrain using ACTUAL rendered width
+  // (letter-spaced) and scale letter-spacing with the fitted font so a shrunk
+  // main isn't crushed by a fixed lts.
+  const lsStart  = (raffleType==='5050' || raffleType==='tirage5050' || raffleType==='es5050') ? 4 : 6;
+  const mfsStart = Math.round(R * 0.58);
+  const maxLineW = R * 1.30;
+
+  function fitLines(lines, minSz) {
+    let sz = mfsStart, ls = lsStart;
+    ctx.font = `900 ${sz}px Impact,"Arial Black",sans-serif`;
+    const widest = () => lines.reduce((m, line) => {
+      const w = line.split('').reduce((s, ch) => s + ctx.measureText(ch).width + ls, 0) - ls;
+      return Math.max(m, w);
+    }, 0);
+    while (widest() > maxLineW && sz > minSz) {
+      sz = Math.max(minSz, sz - 2);
+      ls = lsStart * (sz / mfsStart);
+      ctx.font = `900 ${sz}px Impact,"Arial Black",sans-serif`;
+    }
+    return { sz, ls };
+  }
+
+  // Start with single-line fit.
+  let mainLines = [mainTxt];
+  let { sz: mfs, ls } = fitLines(mainLines, 10);
+
+  // For Custom text, if the single-line font had to shrink hard (below ~55%
+  // of target), try splitting into 2 lines at the best word boundary — a
+  // 2-line layout at a larger font is far more readable than 1 line at 10px.
+  if (isCustom && mfs < mfsStart * 0.55) {
+    const words = mainTxt.split(/\s+/).filter(Boolean);
+    if (words.length >= 2) {
+      let best = null;
+      for (let i = 1; i < words.length; i++) {
+        const candidate = [words.slice(0, i).join(' '), words.slice(i).join(' ')];
+        const fit = fitLines(candidate, 10);
+        if (!best || fit.sz > best.sz) best = { lines: candidate, ...fit };
+      }
+      if (best && best.sz > mfs) { mainLines = best.lines; mfs = best.sz; ls = best.ls; }
+    }
+  }
+
+  // Sub text — shrink to fit horizontally.
+  let sfs = Math.round(mfs * 0.42);
+  if (subTxt) {
+    ctx.font = `bold ${sfs}px "DM Sans","Helvetica Neue",sans-serif`;
+    while (ctx.measureText(subTxt).width > maxLineW && sfs > 9) {
+      sfs = Math.max(9, sfs - 1);
+      ctx.font = `bold ${sfs}px "DM Sans","Helvetica Neue",sans-serif`;
+    }
+  }
+
+  // Layout — vertically centre the main block + gap + sub inside the shape.
+  const mainLineH  = mfs * 1.05;
+  const mainBlockH = mainLineH * mainLines.length;
+  const gap        = Math.max(4, Math.round(mfs * 0.1));
+  const totalH     = mainBlockH + gap + sfs;
+  const firstMainY = cy - totalH / 2 + mfs; // baseline of first line
+  const mainY      = firstMainY;            // preserved for gradient anchor below
+  const subY       = firstMainY + mainLineH * (mainLines.length - 1) + gap + sfs;
 
   // Build logo-colour gradient — shape is WHITE so gradient must be DARK (luminance <= 0.45)
   // Also avoid yellow/gold hues which are unreadable on white
@@ -6371,15 +6836,52 @@ function drawRaffleTextInShape(ctx, rcx, shapeInfo, raffleType, accentTextCol, a
   ctx.save();
   ctx.textAlign='center'; ctx.textBaseline='alphabetic';
   ctx.font=`900 ${mfs}px Impact,"Arial Black",sans-serif`;
-  const totalLW=mainTxt.split('').reduce((s,l)=>s+ctx.measureText(l).width+ls,0)-ls;
-  let xp=rcx-totalLW/2;
-  ctx.fillStyle=tg;
-  ctx.shadowColor='rgba(0,0,0,0.18)'; ctx.shadowBlur=4; ctx.shadowOffsetX=1; ctx.shadowOffsetY=1;
-  mainTxt.split('').forEach(l=>{const lw2=ctx.measureText(l).width;ctx.fillText(l,xp+lw2/2,mainY);xp+=lw2+ls;});
-  ctx.font=`bold ${sfs}px "DM Sans","Helvetica Neue",sans-serif`;
-  ctx.fillStyle=subFill;
-  ctx.shadowColor='rgba(0,0,0,0.12)'; ctx.shadowBlur=3;
-  ctx.fillText(subTxt,rcx,subY);
+
+  // Main text — one draw pass per line so wrapping (Custom promo types)
+  // stacks cleanly. Each line gets a white halo stroke first for legibility
+  // against sport-specific shape decorations, then the dark gradient fill.
+  const haloAlpha = 0.85;
+  const mainHaloW = Math.max(2, mfs * 0.10);
+  mainLines.forEach((line, i) => {
+    const y = firstMainY + mainLineH * i;
+    const totalLW = line.split('').reduce((s, ch) => s + ctx.measureText(ch).width + ls, 0) - ls;
+
+    // Halo pass
+    ctx.strokeStyle = `rgba(255,255,255,${haloAlpha})`;
+    ctx.lineWidth = mainHaloW;
+    ctx.lineJoin = 'round';
+    let hx = rcx - totalLW / 2;
+    line.split('').forEach(ch => {
+      const lw = ctx.measureText(ch).width;
+      ctx.strokeText(ch, hx + lw / 2, y);
+      hx += lw + ls;
+    });
+
+    // Fill pass
+    ctx.fillStyle = tg;
+    ctx.shadowColor = 'rgba(0,0,0,0.18)'; ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
+    let fx = rcx - totalLW / 2;
+    line.split('').forEach(ch => {
+      const lw = ctx.measureText(ch).width;
+      ctx.fillText(ch, fx + lw / 2, y);
+      fx += lw + ls;
+    });
+    ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+  });
+
+  // Sub text — same halo-then-fill treatment for legibility.
+  if (subTxt) {
+    ctx.font = `bold ${sfs}px "DM Sans","Helvetica Neue",sans-serif`;
+    ctx.strokeStyle = `rgba(255,255,255,${haloAlpha})`;
+    ctx.lineWidth = Math.max(2, sfs * 0.12);
+    ctx.lineJoin = 'round';
+    ctx.strokeText(subTxt, rcx, subY);
+    ctx.fillStyle = subFill;
+    ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 3;
+    ctx.fillText(subTxt, rcx, subY);
+    ctx.shadowBlur = 0;
+  }
   ctx.restore();
 }
 
@@ -6909,7 +7411,7 @@ async function finaliseDownload(){
   if (qrUrl && _ticketLayout) {
     try {
       const {rx, ry, tw, th} = _ticketLayout;
-      if (currentRatio === 'letter') {
+      if (currentRatio === 'letter' && currentMode !== 'simple') {
         // Two QRs in the lower corners of the bottom (raffle) ticket.
         // Size is chosen so the QR top sits safely below the prize image bottom
         // and the pill stays fully within the ticket shape.
@@ -6931,14 +7433,52 @@ async function finaliseDownload(){
         await drawQROnCanvas(ctx, lqrX, qrY, qrSize, qrUrl);
 
       } else {
-        const qrSize = Math.round(Math.min(tw, th) * 0.14);
-        const pad    = Math.round(qrSize * 0.15);
-        const labelFS = Math.max(8, Math.round(qrSize * 0.13));
-        const pillH  = qrSize + pad * 2 + labelFS + 8;
+        let qrSize = Math.round(Math.min(tw, th) * 0.14);
+        let pad    = Math.round(qrSize * 0.15);
+        let labelFS = Math.max(8, Math.round(qrSize * 0.13));
+        let pillH  = qrSize + pad * 2 + labelFS + 8;
         // Offset QR above sport banner text band (bandH=0 for standard)
         const _bandOff = _ticketLayout.bandH || 0;
-        const qrX = rx + tw - qrSize - pad - 10;
-        const qrY = ry + th - pillH - 10 - _bandOff;
+        let qrX = rx + tw - qrSize - pad - 10;
+        let qrY = ry + th - pillH - 10 - _bandOff;
+
+        // Sport mode: nudge the QR outward along the diagonal from the shape
+        // centre so its shape-facing (top-left) corner sits outside the shape
+        // circle. If even at 60% size it can't clear the shape without
+        // leaving the ticket, we keep the shrunken version and accept a
+        // small overlap rather than push it off-canvas.
+        const rShape = currentMode === 'sport' ? _ticketLayout.rShape : null;
+        if (rShape) {
+          const safeGap = 10;
+          for (let attempt = 0; attempt < 3; attempt++) {
+            const pillW = qrSize + pad * 2;
+            const shapeCornerDist = Math.hypot(qrX - rShape.cx, qrY - rShape.cy);
+            const need = rShape.R + safeGap;
+            if (shapeCornerDist >= need) break;
+            // Push top-left corner outward along the diagonal from shape centre.
+            const dx = qrX - rShape.cx, dy = qrY - rShape.cy;
+            const dist = Math.max(1, Math.hypot(dx, dy));
+            const shiftX = (dx / dist) * (need - dist);
+            const shiftY = (dy / dist) * (need - dist);
+            const trialX = qrX + shiftX;
+            const trialY = qrY + shiftY;
+            // If shifting still leaves the pill inside the ticket, accept it.
+            const fitsTicket = (trialX + pillW <= rx + tw - 4) &&
+                               (trialY + pillH <= ry + th - _bandOff - 4);
+            if (fitsTicket) {
+              qrX = trialX; qrY = trialY;
+              break;
+            }
+            // Doesn't fit — shrink the QR and retry.
+            qrSize   = Math.round(qrSize * 0.85);
+            pad      = Math.round(qrSize * 0.15);
+            labelFS  = Math.max(8, Math.round(qrSize * 0.13));
+            pillH    = qrSize + pad * 2 + labelFS + 8;
+            qrX = rx + tw - qrSize - pad - 10;
+            qrY = ry + th - pillH - 10 - _bandOff;
+          }
+        }
+
         await drawQROnCanvas(ctx, qrX, qrY, qrSize, qrUrl);
       }
     } catch (err) {
