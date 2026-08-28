@@ -577,6 +577,7 @@ function commitCustomRatio() {
 }
 
 function setMode(m) {
+  const prevMode = currentMode;
   currentMode = m;
   document.getElementById('modeSimple').classList.toggle('active', m==='simple');
   document.getElementById('modeStandard').classList.toggle('active', m==='standard');
@@ -592,7 +593,16 @@ function setMode(m) {
   const sel = document.getElementById('raffleType');
   const prevType = sel?.value;
   const curLang = TYPE_TO_LANG[prevType] || currentLang || 'en';
-  _rebuildTypeDropdown(curLang, prevType);
+
+  // Leaving Simple for Raffle or Sport: 50/50 is the most common choice in
+  // both templates, so hop to it rather than carrying Custom forward from
+  // the Simple template (which only exposes Custom).
+  let preferred = prevType;
+  if (prevMode === 'simple' && (m === 'standard' || m === 'sport') && TYPE_TO_FAMILY[prevType] === 'custom') {
+    preferred = FAMILY_LANG['5050'][curLang] || '5050';
+  }
+
+  _rebuildTypeDropdown(curLang, preferred);
   if (sel && sel.value !== prevType) sel.dispatchEvent(new Event('change'));
 
   scheduleAutoPreview();
