@@ -124,7 +124,7 @@ let currentLang = 'en';    // 'en', 'fr' or 'es' — driven by raffle type selec
 // ═══════════════════════════════════════════════════════════════════════
 const UI_STRINGS = {
   en: {
-    step0Title:'Select Language', step1Title:'Banner Type', step2Title:'Output Format', step3Title:'Promo Details', step4Title:'QR Code',
+    step0Title:'Select Language', step1Title:'Banner Type', step2Title:'Output Format', step3Title:'Organization Information', step4Title:'QR Code',
     labelSelectLang:'Language',
     resetBtn:'Reset All Fields',
     resetConfirm:'Reset all fields? Your current banner will be cleared and cannot be recovered.',
@@ -141,7 +141,7 @@ const UI_STRINGS = {
     labelCustomSub:'Subheading', labelCustomSubHint:'(optional)', phCustomSub:'e.g. 50% OFF',
     labelCustomExtra:'Additional Text', labelCustomExtraHint:'(optional)', phCustomExtra:'e.g. In-store only, ends Sunday',
     customTextNote:'💡 <strong>Tip:</strong> Short, punchy text works best. Both lines are rendered in the same bold display style as the built-in raffle labels.',
-    labelLogoUpload:'Team / Club Logo',
+    labelLogoUpload:'Logo',
     logoUploadDefault:'Click Here to upload logo or image…',
     logoUploadNew:'Click Here to upload new file',
     removeLogoBtn:'✕ Remove Logo',
@@ -192,7 +192,7 @@ const UI_STRINGS = {
     downloadReuseHint:'💾 <strong>Editable file:</strong> this PNG stores your form data. Keep the original and re-upload it here later — e.g. to swap in your approved licence number — without re-entering anything. Re-saving through other image tools may strip the embedded data.',
   },
   fr: {
-    step0Title:'Choisir la langue', step1Title:'Type de bannière', step2Title:'Format de sortie', step3Title:'Détails de la promo', step4Title:'Code QR',
+    step0Title:'Choisir la langue', step1Title:'Type de bannière', step2Title:'Format de sortie', step3Title:'Informations sur l\'organisme', step4Title:'Code QR',
     labelSelectLang:'Langue',
     resetBtn:'Tout réinitialiser',
     resetConfirm:'Réinitialiser tous les champs ? Votre bannière actuelle sera effacée et ne pourra pas être récupérée.',
@@ -209,7 +209,7 @@ const UI_STRINGS = {
     labelCustomSub:'Sous-titre', labelCustomSubHint:'(facultatif)', phCustomSub:'ex. : 50 % DE RABAIS',
     labelCustomExtra:'Texte supplémentaire', labelCustomExtraHint:'(facultatif)', phCustomExtra:'ex. : en magasin seulement, se termine dimanche',
     customTextNote:'💡 <strong>Conseil :</strong> Un texte court et percutant fonctionne le mieux. Les deux lignes sont rendues dans le même style d\'affichage gras que les libellés de tirage intégrés.',
-    labelLogoUpload:'Logo de l\'équipe / club',
+    labelLogoUpload:'Logo',
     logoUploadDefault:'Cliquez ici pour téléverser un logo…',
     logoUploadNew:'Cliquez ici pour téléverser un nouveau fichier',
     removeLogoBtn:'✕ Supprimer le logo',
@@ -260,7 +260,7 @@ const UI_STRINGS = {
     downloadReuseHint:'💾 <strong>Fichier modifiable :</strong> ce PNG contient les données de votre formulaire. Conservez l\'original et retéléversez-le ici plus tard — par ex. pour insérer votre numéro de licence approuvé — sans tout ressaisir. Le réenregistrement par un autre outil d\'image peut supprimer les données intégrées.',
   },
   es: {
-    step0Title:'Elegir el idioma', step1Title:'Tipo de bandera', step2Title:'Formato de salida', step3Title:'Detalles de la promo', step4Title:'Código QR',
+    step0Title:'Elegir el idioma', step1Title:'Tipo de bandera', step2Title:'Formato de salida', step3Title:'Información de la organización', step4Title:'Código QR',
     labelSelectLang:'Idioma',
     resetBtn:'Restablecer todo',
     resetConfirm:'¿Restablecer todos los campos? Su bandera actual se borrará y no podrá recuperarse.',
@@ -277,7 +277,7 @@ const UI_STRINGS = {
     labelCustomSub:'Subtítulo', labelCustomSubHint:'(opcional)', phCustomSub:'ej.: 50% DE DESCUENTO',
     labelCustomExtra:'Texto adicional', labelCustomExtraHint:'(opcional)', phCustomExtra:'ej.: solo en tienda, termina el domingo',
     customTextNote:'💡 <strong>Consejo:</strong> El texto corto y contundente funciona mejor. Ambas líneas se muestran con el mismo estilo en negrita que las etiquetas de rifa integradas.',
-    labelLogoUpload:'Logo del equipo / club',
+    labelLogoUpload:'Logo',
     logoUploadDefault:'Haga clic aquí para subir un logo o imagen…',
     logoUploadNew:'Haga clic aquí para subir un nuevo archivo',
     removeLogoBtn:'✕ Quitar logo',
