@@ -174,7 +174,7 @@ const UI_STRINGS = {
     statusBannerReady:(label,kb)=>`Banner ready · ${label} · ${kb} KB`,
     statusBannerReadyNoKb:(label)=>`Banner ready · ${label}`,
     placeholderTitle:'Your banner appears here',
-    placeholderSub:'Fill in your details on the left, then click Generate Banner to create a print-ready raffle promo.',
+    placeholderSub:'Fill in your details on the left, then click Generate Banner to create a print-ready promo.',
     fileInfo:' · PNG · Ready to download',
     copyBtn:'📋 Copy', copiedBtn:'✓ Copied!', downloadBtn:'⬇ Download PNG',
     instructionsBtn:'Instructions for Use',
@@ -241,7 +241,7 @@ const UI_STRINGS = {
     statusBannerReady:(label,kb)=>`Bannière prête · ${label} · ${kb} Ko`,
     statusBannerReadyNoKb:(label)=>`Bannière prête · ${label}`,
     placeholderTitle:'Votre bannière apparaît ici',
-    placeholderSub:'Remplissez vos informations à gauche, puis cliquez sur Générer la bannière pour créer votre promo de tirage.',
+    placeholderSub:'Remplissez vos informations à gauche, puis cliquez sur Générer la bannière pour créer votre promo.',
     fileInfo:' · PNG · Prêt à télécharger',
     copyBtn:'📋 Copier', copiedBtn:'✓ Copié !', downloadBtn:'⬇ Télécharger PNG',
     instructionsBtn:'Guide d\'utilisation',
@@ -308,7 +308,7 @@ const UI_STRINGS = {
     statusBannerReady:(label,kb)=>`Bandera lista · ${label} · ${kb} KB`,
     statusBannerReadyNoKb:(label)=>`Bandera lista · ${label}`,
     placeholderTitle:'Su bandera aparecerá aquí',
-    placeholderSub:'Llene sus datos a la izquierda, luego haga clic en Generar bandera para crear una promo de rifa lista para imprimir.',
+    placeholderSub:'Llene sus datos a la izquierda, luego haga clic en Generar bandera para crear una promo lista para imprimir.',
     fileInfo:' · PNG · Lista para descargar',
     copyBtn:'📋 Copiar', copiedBtn:'✓ ¡Copiada!', downloadBtn:'⬇ Descargar PNG',
     instructionsBtn:'Guía de uso',
@@ -1739,7 +1739,6 @@ async function applyBannerState(state) {
   setVal('customMainText', f.customMainText);
   setVal('customSubText',  f.customSubText);
   updateCustomCounter('customMainText', 'customMainCounter', 40);
-  updateCustomCounter('customSubText',  'customSubCounter',  40);
 
   // 2b. Packages — clear existing rows, then rebuild.
   const pc = document.getElementById('packageContainer');

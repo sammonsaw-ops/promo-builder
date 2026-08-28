@@ -152,8 +152,8 @@
                 <input type="text" id="customMainText" data-autopreview maxlength="40" placeholder="e.g. FALL SALE" oninput="updateCustomCounter('customMainText','customMainCounter',40)">
               </div>
               <div class="form-group span2">
-                <label class="field-label" id="labelCustomSub">Subheading <span class="hint" id="labelCustomSubHint">(optional)</span> <span class="hint" id="customSubCounter">0 / 40</span></label>
-                <input type="text" id="customSubText" data-autopreview maxlength="40" placeholder="e.g. 50% OFF" oninput="updateCustomCounter('customSubText','customSubCounter',40)">
+                <label class="field-label" id="labelCustomSub">Subheading <span class="hint" id="labelCustomSubHint">(optional)</span></label>
+                <input type="text" id="customSubText" data-autopreview placeholder="e.g. 50% OFF">
               </div>
               <div class="form-group span2" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:8px 12px;">
                 <p style="font-size:0.7rem;color:#075985;line-height:1.5;margin:0;" id="customTextNote">
@@ -483,9 +483,9 @@
 
       <div class="preview-area" id="previewArea" aria-label="Banner preview">
         <div class="preview-placeholder" id="previewPlaceholder" role="status">
-          <div class="placeholder-icon" aria-hidden="true">🎟️</div>
+          <div class="placeholder-icon" aria-hidden="true">🖼️</div>
           <div class="placeholder-title" id="placeholderTitle">Your banner appears here</div>
-          <div class="placeholder-sub" id="placeholderSub">Fill in your details on the left, then click Generate Banner to create a print-ready raffle promo.</div>
+          <div class="placeholder-sub" id="placeholderSub">Fill in your details on the left, then click Generate Banner to create a print-ready promo.</div>
         </div>
         <canvas id="preview" width="1080" height="608" aria-label="Generated raffle promo banner"></canvas>
       </div>
