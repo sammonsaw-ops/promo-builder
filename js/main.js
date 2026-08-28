@@ -6282,6 +6282,11 @@ function generateSportPoster() {
     // closes over it.
     const BAND_H = Math.round(Math.max(54, Math.min(th * 0.135, 84)));
     _ticketLayout.bandH = BAND_H;
+    // Actual bottom-band height of the RIGHT/BOTTOM ticket — this is what
+    // eats space beneath the QR pill:
+    //   - landscape right ticket: bottom is the icon band (50)
+    //   - portrait bottom ticket: bottom is the text band (BAND_H)
+    _ticketLayout.rBotBand = isPortrait ? BAND_H : bandH;
 
     // Centre the sport shape in the ACTUAL visible colored zone between the
     // bands, per ticket side. The two bands are not symmetric:
@@ -7437,8 +7442,11 @@ async function finaliseDownload(){
         let pad    = Math.round(qrSize * 0.15);
         let labelFS = Math.max(8, Math.round(qrSize * 0.13));
         let pillH  = qrSize + pad * 2 + labelFS + 8;
-        // Offset QR above sport banner text band (bandH=0 for standard)
-        const _bandOff = _ticketLayout.bandH || 0;
+        // Reserve = actual bottom-band height of the right/bottom ticket
+        // (sport landscape → icon band 50; sport portrait bottom → text band
+        // ~84; standard raffle → 0). Falls back to bandH for older layouts
+        // that still expose the older field.
+        const _bandOff = _ticketLayout.rBotBand ?? _ticketLayout.bandH ?? 0;
         let qrX = rx + tw - qrSize - pad - 10;
         let qrY = ry + th - pillH - 10 - _bandOff;
 
