@@ -139,6 +139,7 @@ const UI_STRINGS = {
     labelRaffleType:'Promo Type',
     labelCustomMain:'Main Headline', phCustomMain:'e.g. FALL SALE',
     labelCustomSub:'Subheading', labelCustomSubHint:'(optional)', phCustomSub:'e.g. 50% OFF',
+    labelCustomExtra:'Additional Text', labelCustomExtraHint:'(optional)', phCustomExtra:'e.g. In-store only, ends Sunday',
     customTextNote:'💡 <strong>Tip:</strong> Short, punchy text works best. Both lines are rendered in the same bold display style as the built-in raffle labels.',
     labelLogoUpload:'Team / Club Logo',
     logoUploadDefault:'Click Here to upload logo or image…',
@@ -206,6 +207,7 @@ const UI_STRINGS = {
     labelRaffleType:'Type de promo',
     labelCustomMain:'Titre principal', phCustomMain:'ex. : SOLDE D\'AUTOMNE',
     labelCustomSub:'Sous-titre', labelCustomSubHint:'(facultatif)', phCustomSub:'ex. : 50 % DE RABAIS',
+    labelCustomExtra:'Texte supplémentaire', labelCustomExtraHint:'(facultatif)', phCustomExtra:'ex. : en magasin seulement, se termine dimanche',
     customTextNote:'💡 <strong>Conseil :</strong> Un texte court et percutant fonctionne le mieux. Les deux lignes sont rendues dans le même style d\'affichage gras que les libellés de tirage intégrés.',
     labelLogoUpload:'Logo de l\'équipe / club',
     logoUploadDefault:'Cliquez ici pour téléverser un logo…',
@@ -273,6 +275,7 @@ const UI_STRINGS = {
     labelRaffleType:'Tipo de promo',
     labelCustomMain:'Titular principal', phCustomMain:'ej.: OFERTA DE OTOÑO',
     labelCustomSub:'Subtítulo', labelCustomSubHint:'(opcional)', phCustomSub:'ej.: 50% DE DESCUENTO',
+    labelCustomExtra:'Texto adicional', labelCustomExtraHint:'(opcional)', phCustomExtra:'ej.: solo en tienda, termina el domingo',
     customTextNote:'💡 <strong>Consejo:</strong> El texto corto y contundente funciona mejor. Ambas líneas se muestran con el mismo estilo en negrita que las etiquetas de rifa integradas.',
     labelLogoUpload:'Logo del equipo / club',
     logoUploadDefault:'Haga clic aquí para subir un logo o imagen…',
@@ -379,8 +382,11 @@ function applyUILanguage(lang) {
   _setText('labelCustomMain', S.labelCustomMain);
   _setText('labelCustomSub',  S.labelCustomSub);
   _setText('labelCustomSubHint', S.labelCustomSubHint);
-  _setPH('customMainText', S.phCustomMain);
-  _setPH('customSubText',  S.phCustomSub);
+  _setText('labelCustomExtra', S.labelCustomExtra);
+  _setText('labelCustomExtraHint', S.labelCustomExtraHint);
+  _setPH('customMainText',  S.phCustomMain);
+  _setPH('customSubText',   S.phCustomSub);
+  _setPH('customExtraText', S.phCustomExtra);
   _setHTML('customTextNote', S.customTextNote);
 
   // Brand palette
@@ -1056,21 +1062,26 @@ function getRaffleStrings(raffleType) {
   const isFr = raffleType === 'tirage'  || raffleType === 'tirage5050' || raffleType === 'custom_fr';
   const isEs = raffleType === 'esrifa'  || raffleType === 'es5050'     || raffleType === 'custom_es';
   const isCustom = raffleType === 'custom' || raffleType === 'custom_fr' || raffleType === 'custom_es';
-  let customMain = '', customSub = '';
+  let customMain = '', customSub = '', customExtra = '';
   if (isCustom) {
-    customMain = (document.getElementById('customMainText')?.value || '').trim().toUpperCase();
-    customSub  = (document.getElementById('customSubText')?.value  || '').trim().toUpperCase();
+    customMain  = (document.getElementById('customMainText')?.value  || '').trim().toUpperCase();
+    customSub   = (document.getElementById('customSubText')?.value   || '').trim().toUpperCase();
+    // Additional Text keeps its natural casing — it's usually a sentence
+    // fragment (e.g. "In-store only, ends Sunday") rather than a headline.
+    customExtra = (document.getElementById('customExtraText')?.value || '').trim();
   }
   const customDefaults = isFr ? { main:'VOTRE TEXTE', sub:'ICI' }
                        : isEs ? { main:'SU TEXTO',    sub:'AQUÍ' }
                        :        { main:'YOUR TEXT',   sub:'HERE' };
-  const cMain = isCustom ? (customMain || customDefaults.main) : null;
-  const cSub  = isCustom ? customSub : null;  // sub is optional — blank is fine
+  const cMain  = isCustom ? (customMain || customDefaults.main) : null;
+  const cSub   = isCustom ? customSub   : null;  // sub is optional — blank is fine
+  const cExtra = isCustom ? customExtra : null;  // additional text is optional too
   const cBand = isCustom ? [customMain, customSub].filter(Boolean).join(' ') || customDefaults.main : null;
   if (isFr) {
     return {
       mainTxt:    isCustom ? cMain : (raffleType === 'tirage5050' ? 'MOITIÉ-MOITIÉ' : 'TIRAGE'),
       subTxt:     isCustom ? cSub  : (raffleType === 'tirage5050' ? 'TIRAGE' : 'DE PRIX'),
+      extraTxt:   isCustom ? cExtra : null,
       bandLabel:  isCustom ? cBand : (raffleType === 'tirage5050' ? 'TIRAGE MOITIÉ-MOITIÉ' : 'TIRAGE DE PRIX'),
       thankYou:   'MERCI POUR VOTRE SOUTIEN !',
       pkgTitle:   'Forfaits de billets',
@@ -1092,6 +1103,7 @@ function getRaffleStrings(raffleType) {
     return {
       mainTxt:    isCustom ? cMain : (raffleType === 'es5050' ? '50/50' : 'RIFA'),
       subTxt:     isCustom ? cSub  : (raffleType === 'es5050' ? 'RIFA'  : 'CON PREMIO'),
+      extraTxt:   isCustom ? cExtra : null,
       bandLabel:  isCustom ? cBand : (raffleType === 'es5050' ? 'RIFA 50/50' : 'RIFA CON PREMIO'),
       thankYou:   '¡GRACIAS POR SU APOYO!',
       pkgTitle:   'Paquetes de boletos',
@@ -1112,6 +1124,7 @@ function getRaffleStrings(raffleType) {
   return {
     mainTxt:    isCustom ? cMain : (raffleType === '5050' ? '50/50' : 'PRIZE'),
     subTxt:     isCustom ? cSub  : 'RAFFLE',
+    extraTxt:   isCustom ? cExtra : null,
     bandLabel:  isCustom ? cBand : (raffleType === '5050' ? '50/50 RAFFLE' : 'PRIZE RAFFLE'),
     thankYou:   'THANK YOU FOR YOUR SUPPORT',
     pkgTitle:   'Ticket Packages',
@@ -1162,6 +1175,26 @@ function fitBoldFontSz(ctx, text, maxW, startSz, minSz = 10) {
     if (ctx.measureText(text).width <= maxW || sz <= minSz) return sz;
     sz = Math.max(minSz, Math.round(sz * 0.92));
   }
+}
+
+// ─── drawExtraTxtLine ─────────────────────────────────────────────────────────
+// Renders the optional "Additional Text" line below the sub headline (only
+// present for Custom promo types). Returns the baseline Y of the extra text,
+// or subY unchanged when there's nothing to draw. Font is ~72% of the sub's
+// fitted size, medium weight (not bold) so the visual hierarchy stays
+// main > sub > extra.
+function drawExtraTxtLine(ctx, extraTxt, cx, subY, subFS, maxW, fillStyle) {
+  if (!extraTxt) return subY;
+  const extraFSTarget = Math.max(11, Math.round(subFS * 0.72));
+  const extraFS = fitBoldFontSz(ctx, extraTxt, maxW, extraFSTarget, 9);
+  const extraY = subY + Math.round(subFS * 0.55) + Math.round(extraFS * 0.72) + 6;
+  ctx.save();
+  ctx.font = `500 ${extraFS}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+  ctx.fillStyle = fillStyle;
+  ctx.textAlign = 'center';
+  ctx.fillText(extraTxt, cx, extraY);
+  ctx.restore();
+  return extraY;
 }
 
 
@@ -1686,8 +1719,9 @@ async function captureBannerState() {
       drawTime:         dom('drawTime')?.value || '',
       drawLocation:     dom('drawLocation')?.value || '',
       qrUrl:            dom('qrUrl')?.value || '',
-      customMainText:   dom('customMainText')?.value || '',
-      customSubText:    dom('customSubText')?.value  || '',
+      customMainText:   dom('customMainText')?.value  || '',
+      customSubText:    dom('customSubText')?.value   || '',
+      customExtraText:  dom('customExtraText')?.value || '',
       packages,
       mode:             currentMode,
       sport:            currentSport,
@@ -1736,8 +1770,9 @@ async function applyBannerState(state) {
   setVal('drawLocation', f.drawLocation);
   setVal('qrUrl', f.qrUrl);
   if (f.qrUrl) updateQrPreview(f.qrUrl);
-  setVal('customMainText', f.customMainText);
-  setVal('customSubText',  f.customSubText);
+  setVal('customMainText',  f.customMainText);
+  setVal('customSubText',   f.customSubText);
+  setVal('customExtraText', f.customExtraText);
   updateCustomCounter('customMainText', 'customMainCounter', 40);
 
   // 2b. Packages — clear existing rows, then rebuild.
@@ -5248,8 +5283,9 @@ function generateStandardPoster() {
           if (!isSingleColored) ctx.strokeText(_sq_S.subTxt, rcx, subY2);
           ctx.fillText(_sq_S.subTxt, rcx, subY2);
         }
-        drawOrnDiv(ctx, rcx, subY2 + ornGap2, tw*0.3, primaryColor);
-        let dsY2 = subY2 + Math.round(fittedSub2 * 1.4);  // extra gap below ornament so Ticket Packages has breathing room
+        const _afterSubY_sq = drawExtraTxtLine(ctx, _sq_S.extraTxt, rcx, subY2, fittedSub2, tw - 60, primaryColor);
+        drawOrnDiv(ctx, rcx, _afterSubY_sq + ornGap2, tw*0.3, primaryColor);
+        let dsY2 = _afterSubY_sq + Math.round(fittedSub2 * 1.4);  // extra gap below ornament so Ticket Packages has breathing room
 
         if (hasPrize) {
           const pf = document.getElementById('prizeImageUpload').files[0];
@@ -5389,10 +5425,11 @@ function generateStandardPoster() {
             if (!isSingleColored) ctx.strokeText(_c2_S.subTxt, rcx2, sY2);
             ctx.fillText(_c2_S.subTxt, rcx2, sY2);
           }
-          drawOrnDiv(ctx, rcx2, sY2 + Math.round(_fittedSFS2 * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
+          const _afterSubY_c2 = drawExtraTxtLine(ctx, _c2_S.extraTxt, rcx2, sY2, _fittedSFS2, avW - 20, primaryColor);
+          drawOrnDiv(ctx, rcx2, _afterSubY_c2 + Math.round(_fittedSFS2 * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
 
           // Image zone starts below actual text+ornament, not a fixed percentage
-          const _textEnd2 = sY2 + Math.round(_fittedSFS2 * 0.5) + 15;
+          const _textEnd2 = _afterSubY_c2 + Math.round(_fittedSFS2 * 0.5) + 15;
           const imgTop2 = Math.max(ry + txtZoneH, _textEnd2);
           const imgBot2 = ry + th - pad;
           const imgH2   = Math.max(20, imgBot2 - imgTop2);
@@ -5450,8 +5487,9 @@ function generateStandardPoster() {
             if (!isSingleColored) ctx.strokeText(_c3_S.subTxt, rcx2, sY3c);
             ctx.fillText(_c3_S.subTxt, rcx2, sY3c);
           }
-          drawOrnDiv(ctx, rcx2, sY3c + Math.round(_fittedSFS3 * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
-          const dsY3c = sY3c + Math.round(_fittedSFS3 * 1.3) + 12;
+          const _afterSubY_c3 = drawExtraTxtLine(ctx, _c3_S.extraTxt, rcx2, sY3c, _fittedSFS3, avW - 20, primaryColor);
+          drawOrnDiv(ctx, rcx2, _afterSubY_c3 + Math.round(_fittedSFS3 * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
+          const dsY3c = _afterSubY_c3 + Math.round(_fittedSFS3 * 1.3) + 12;
           drawStdDetails(ctx, showDetails, rx, tw, ry, th, rcx2, dsY3c, raffleType, primaryColor);
           ctx.restore();
           return;
@@ -5490,8 +5528,9 @@ function generateStandardPoster() {
           if (!isSingleColored) ctx.strokeText(_c3b_S.subTxt, rcx2, subY3);
           ctx.fillText(_c3b_S.subTxt, rcx2, subY3);
         }
-        drawOrnDiv(ctx, rcx2, subY3 + Math.round(_fittedSFS3b * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
-        const dsY3 = subY3 + Math.round(_fittedSFS3b * 0.9) + ornGap3;
+        const _afterSubY_c3b = drawExtraTxtLine(ctx, _c3b_S.extraTxt, rcx2, subY3, _fittedSFS3b, avW - 20, primaryColor);
+        drawOrnDiv(ctx, rcx2, _afterSubY_c3b + Math.round(_fittedSFS3b * 0.5) + 5, Math.min(avW * 0.30, 100), primaryColor);
+        const dsY3 = _afterSubY_c3b + Math.round(_fittedSFS3b * 0.9) + ornGap3;
         drawStdDetails(ctx, showDetails, rx, tw, ry, th, rcx2, dsY3, raffleType, primaryColor);
         ctx.restore();
         return;
@@ -5603,8 +5642,9 @@ function generateStandardPoster() {
         if(!isSingleColored)ctx.strokeText(_ns_S.subTxt,rtx,subY);
         ctx.fillText(_ns_S.subTxt,rtx,subY);
       }
-      drawOrnDiv(ctx,rtx,subY+Math.round(18*sm),tw*0.3,primaryColor);
-      let dsY=subY+Math.round(subFontSz*1.3);
+      const _afterSubY_ns = drawExtraTxtLine(ctx, _ns_S.extraTxt, rtx, subY, subFontSz, tw - 60, primaryColor);
+      drawOrnDiv(ctx,rtx,_afterSubY_ns+Math.round(18*sm),tw*0.3,primaryColor);
+      let dsY=_afterSubY_ns+Math.round(subFontSz*1.3);
       if((raffleType==='prize'||raffleType==='tirage'||raffleType==='esrifa')&&hasPrize){
         const pf=document.getElementById('prizeImageUpload').files[0];
         const pi=preloadedPrizeImg||new Image();
@@ -5879,18 +5919,25 @@ function generateSimplePoster() {
       const lts    = (raffleType === '5050' || raffleType === 'tirage5050' || raffleType === 'es5050') ? 6 : 8;
       const mainTxt = S_r.mainTxt;
       const subTxt  = S_r.subTxt;
+      const extraTxt = S_r.extraTxt || '';
       const { sz: fittedMain, lts: fittedLts } = fitMainFontSz(ctx, mainTxt, lts, msgW - 40, mainFS);
       // Shrink the sub so long Custom subheadings (now up to 40 chars) stay
       // inside the message zone instead of bleeding past the card edge.
       const fittedSub = subTxt
         ? fitBoldFontSz(ctx, subTxt, msgW - 40, subFSTarget, 10)
         : subFSTarget;
+      // Additional Text — ~72% of sub, non-bold, shrinks to fit.
+      const extraFSTarget = Math.max(11, Math.round(fittedSub * 0.72));
+      const fittedExtra = extraTxt
+        ? fitBoldFontSz(ctx, extraTxt, msgW - 40, extraFSTarget, 9)
+        : extraFSTarget;
+      const extraGap = extraTxt ? Math.round(fittedSub * 0.55) + Math.round(fittedExtra * 0.72) + 6 : 0;
 
       // Anchor: near top when compact (leave room for details/prize), else centred
       const gapMainToSub = Math.round(fittedMain * 0.28) + Math.round(fittedSub * 0.72) + 10;
       const headlineTop = compact
         ? msgY + Math.round(msgH * 0.05)
-        : msgY + (msgH - (fittedMain + fittedSub + gapMainToSub + 32)) / 2;
+        : msgY + (msgH - (fittedMain + fittedSub + gapMainToSub + (extraTxt ? fittedExtra + extraGap : 0) + 32)) / 2;
       const mainY = headlineTop + fittedMain;
 
       ctx.fillStyle = primaryColor;
@@ -5916,8 +5963,16 @@ function generateSimplePoster() {
         if (!isSingleColored) ctx.strokeText(subTxt, msgCx, subY);
         ctx.fillText(subTxt, msgCx, subY);
       }
-      drawOrnDiv(ctx, msgCx, subY + Math.round(fittedSub * 0.7) + 6, Math.min(msgW * 0.32, 180), primaryColor);
-      let dsY = subY + Math.round(fittedSub * 1.5);
+      // Additional Text — non-bold, slightly smaller, sits below sub.
+      let afterCopyY = subY;
+      if (extraTxt) {
+        const extraY = subY + extraGap;
+        ctx.font = `500 ${fittedExtra}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+        ctx.fillText(extraTxt, msgCx, extraY);
+        afterCopyY = extraY;
+      }
+      drawOrnDiv(ctx, msgCx, afterCopyY + Math.round(fittedSub * 0.7) + 6, Math.min(msgW * 0.32, 180), primaryColor);
+      let dsY = afterCopyY + Math.round(fittedSub * 1.5);
 
       // Prize image → details underneath
       if (hasPrize) {
@@ -6777,15 +6832,28 @@ function drawRaffleTextInShape(ctx, rcx, shapeInfo, raffleType, accentTextCol, a
       ctx.font = `bold ${sfs}px "DM Sans","Helvetica Neue",sans-serif`;
     }
   }
+  // Additional Text — optional third line, ~72% of sub, medium weight.
+  const extraTxt = _shape_S.extraTxt || '';
+  let efs = extraTxt ? Math.max(9, Math.round(sfs * 0.72)) : 0;
+  if (extraTxt) {
+    ctx.font = `500 ${efs}px "DM Sans","Helvetica Neue",sans-serif`;
+    while (ctx.measureText(extraTxt).width > maxLineW && efs > 8) {
+      efs = Math.max(8, efs - 1);
+      ctx.font = `500 ${efs}px "DM Sans","Helvetica Neue",sans-serif`;
+    }
+  }
 
-  // Layout — vertically centre the main block + gap + sub inside the shape.
+  // Layout — vertically centre the main block + gap + sub (+ optional extra).
   const mainLineH  = mfs * 1.05;
   const mainBlockH = mainLineH * mainLines.length;
   const gap        = Math.max(4, Math.round(mfs * 0.1));
-  const totalH     = mainBlockH + gap + sfs;
+  const extraGapV  = extraTxt ? Math.max(3, Math.round(sfs * 0.35)) : 0;
+  const extraBlock = extraTxt ? extraGapV + efs : 0;
+  const totalH     = mainBlockH + gap + sfs + extraBlock;
   const firstMainY = cy - totalH / 2 + mfs; // baseline of first line
   const mainY      = firstMainY;            // preserved for gradient anchor below
   const subY       = firstMainY + mainLineH * (mainLines.length - 1) + gap + sfs;
+  const extraY     = extraTxt ? subY + extraGapV + efs : subY;
 
   // Build logo-colour gradient — shape is WHITE so gradient must be DARK (luminance <= 0.45)
   // Also avoid yellow/gold hues which are unreadable on white
@@ -6884,6 +6952,18 @@ function drawRaffleTextInShape(ctx, rcx, shapeInfo, raffleType, accentTextCol, a
     ctx.fillStyle = subFill;
     ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 3;
     ctx.fillText(subTxt, rcx, subY);
+    ctx.shadowBlur = 0;
+  }
+  // Additional Text — smaller, medium weight, same halo treatment.
+  if (extraTxt) {
+    ctx.font = `500 ${efs}px "DM Sans","Helvetica Neue",sans-serif`;
+    ctx.strokeStyle = `rgba(255,255,255,${haloAlpha})`;
+    ctx.lineWidth = Math.max(2, efs * 0.14);
+    ctx.lineJoin = 'round';
+    ctx.strokeText(extraTxt, rcx, extraY);
+    ctx.fillStyle = subFill;
+    ctx.shadowColor = 'rgba(0,0,0,0.10)'; ctx.shadowBlur = 2;
+    ctx.fillText(extraTxt, rcx, extraY);
     ctx.shadowBlur = 0;
   }
   ctx.restore();
