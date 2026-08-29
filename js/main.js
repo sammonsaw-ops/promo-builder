@@ -149,9 +149,10 @@ const UI_STRINGS = {
     bpDark:'Dark', bpPrimary:'Primary', bpAccent:'Accent', bpMid:'Mid', bpLight:'Light', bpLogoBg:'Logo BG',
     bpNote:'These colours will be applied across your generated assets. Swatches have a greater effect on Standard and Raffle banners; Sport Themed Raffle banners use sport-specific theming with accents from your palette.',
     labelPrizeImage:'Prize Image', labelPrizeImageHint:'(optional, Prize Raffle)',
-    prizeUploadDefault:'Click Here to upload prize image…',
+    labelPromoImage:'Promo Image', labelPromoImageHint:'(optional)',
+    prizeUploadDefault:'Click Here to upload image…',
     prizeUploadNew:'Click Here to upload new file',
-    removePrizeBtn:'✕ Remove Prize Image',
+    removePrizeBtn:'✕ Remove Image',
     prizeImageNote:'⚠️ Prize image upload is unavailable while <strong>Include Detailed Information</strong> is toggled on. Turn off the toggle to upload a prize image instead.',
     labelQrUrl:'Ticket Purchase URL', labelQrUrlHint:'(adds QR code to banner)',
     qrHint:'QR code will appear in the banner corner.<br>Leave blank to omit.',
@@ -217,7 +218,8 @@ const UI_STRINGS = {
     bpDark:'Foncé', bpPrimary:'Primaire', bpAccent:'Accent', bpMid:'Milieu', bpLight:'Clair', bpLogoBg:'Fond logo',
     bpNote:'Ces couleurs seront appliquées à vos éléments générés. Les palettes ont un effet plus marqué sur les bannières Standard et de Tirage ; les bannières Sport utilisent un thème propre au sport avec des accents de votre palette.',
     labelPrizeImage:'Image du prix', labelPrizeImageHint:'(optionnel, Tirage de Prix)',
-    prizeUploadDefault:'Cliquez ici pour téléverser l\'image du prix…',
+    labelPromoImage:'Image de la promo', labelPromoImageHint:'(facultatif)',
+    prizeUploadDefault:'Cliquez ici pour téléverser une image…',
     prizeUploadNew:'Cliquez ici pour téléverser un nouveau fichier',
     removePrizeBtn:'✕ Supprimer l\'image',
     prizeImageNote:'⚠️ Le téléversement de l\'image du prix n\'est pas disponible lorsque <strong>Inclure les informations détaillées</strong> est activé. Désactivez le bouton pour téléverser une image du prix.',
@@ -285,7 +287,8 @@ const UI_STRINGS = {
     bpDark:'Oscuro', bpPrimary:'Primario', bpAccent:'Acento', bpMid:'Medio', bpLight:'Claro', bpLogoBg:'Fondo logo',
     bpNote:'Estos colores se aplicarán a los elementos generados. Los cambios tienen mayor efecto en las Banderas Estándar y de Rifa; las Banderas Deportivas usan un tema específico del deporte con acentos de su paleta.',
     labelPrizeImage:'Imagen del premio', labelPrizeImageHint:'(opcional, Rifa con Premio)',
-    prizeUploadDefault:'Haga clic aquí para subir la imagen del premio…',
+    labelPromoImage:'Imagen de la promo', labelPromoImageHint:'(opcional)',
+    prizeUploadDefault:'Haga clic aquí para subir una imagen…',
     prizeUploadNew:'Haga clic aquí para subir un nuevo archivo',
     removePrizeBtn:'✕ Quitar imagen',
     prizeImageNote:'⚠️ No se puede subir la imagen del premio mientras <strong>Incluir información detallada</strong> esté activado. Desactive el interruptor para subir una imagen del premio.',
@@ -658,14 +661,28 @@ function togglePrizeImage() {
   if (ctg) ctg.style.display = isCustom ? '' : 'none';
   if (dtw) dtw.style.display = isCustom ? 'none' : '';
 
+  // Relabel the image slot per promo type — same input serves both the
+  // Prize Raffle prize photo and the Custom Text promo image. Rebuild via
+  // innerHTML so the nested hint span stays intact (setting textContent on
+  // the label element would wipe the hint child).
+  const S = UI_STRINGS[currentLang] || UI_STRINGS.en;
+  const lblEl = document.getElementById('labelPrizeImage');
+  const setImageLabel = (labelText, hintText) => {
+    if (!lblEl) return;
+    lblEl.innerHTML =
+      `${labelText} <span class="hint" id="labelPrizeImageHint">${hintText}</span>`;
+  };
   if (isCustom) {
-    pig.style.display='none';
+    setImageLabel(S.labelPromoImage, S.labelPromoImageHint);
+    pig.style.display='block';
     pds.style.display='none';
     pvs.style.display='none';
     if(pin) pin.style.display='none';
     piu.disabled=false;
     _syncLanguageDropdown();
     return;
+  } else {
+    setImageLabel(S.labelPrizeImage, S.labelPrizeImageHint);
   }
 
   if (t==='prize' || t==='tirage' || t==='esrifa') {
@@ -727,6 +744,10 @@ function _snapshotTypeOptions() {
 // only exposes Custom Text — the raffle-specific headlines don't belong on
 // the single-shape template.
 const CUSTOM_TYPES = new Set(['custom', 'custom_fr', 'custom_es']);
+// Promo types that allow an optional image upload — prize raffles use it for
+// the prize photo, custom promos use it as a generic promo image. 50/50
+// raffles have no natural image to show and skip this slot.
+const IMAGE_TYPES = new Set(['prize', 'tirage', 'esrifa', 'custom', 'custom_fr', 'custom_es']);
 
 function _rebuildTypeDropdown(lang, preferValue) {
   _snapshotTypeOptions();
@@ -5104,7 +5125,7 @@ function generateStandardPoster() {
   // and drawLogoOnCard skips drawing for _synthetic imgs, so the banner
   // renders normally (with the user's Banner Colors) minus the logo.
 
-  const prizeFileEarly = (raffleType==='prize'||raffleType==='tirage'||raffleType==='esrifa') ? state.prizeFile : null;
+  const prizeFileEarly = IMAGE_TYPES.has(raffleType) ? state.prizeFile : null;
   const hasPrizeFileEarly = prizeFileEarly && state.prizeInputActive;
 
   function doRender(preloadedPrizeImg) {
@@ -5247,7 +5268,7 @@ function generateStandardPoster() {
         // Gap between tickets — left clean (no bar)
 
         // ── RIGHT ticket: PRIZE/50-50 RAFFLE, vertically centred in ry→ry+th ─
-        const hasPrize = (raffleType==='prize' || raffleType==='tirage' || raffleType==='esrifa') && document.getElementById('prizeImageUpload').files[0] && !document.getElementById('prizeImageUpload').disabled;
+        const hasPrize = IMAGE_TYPES.has(raffleType) && document.getElementById('prizeImageUpload').files[0] && !document.getElementById('prizeImageUpload').disabled;
         // When a prize image is present, use a smaller raffle type so there is
         // room for the image below.  Otherwise use the full-size centred layout.
         // When prize image present OR showDetails, use compact text so details/image get space.
@@ -5392,7 +5413,7 @@ function generateStandardPoster() {
         }
 
         // ── RIGHT TICKET: Raffle text + (prize image) + details ───────────────────
-        const hasPrize2 = (raffleType === 'prize' || raffleType === 'tirage' || raffleType === 'esrifa') &&
+        const hasPrize2 = IMAGE_TYPES.has(raffleType) &&
           document.getElementById('prizeImageUpload').files[0] &&
           !document.getElementById('prizeImageUpload').disabled;
 
@@ -5586,7 +5607,7 @@ function generateStandardPoster() {
         const lic=document.getElementById('licenceNumber').value;
         if(lic){ctx.fillStyle=primaryColor;ctx.globalAlpha=0.65;ctx.font='14px "Helvetica Neue",Helvetica,Arial,sans-serif';ctx.textAlign='center';ctx.fillText(`Licence ${lic}`,lx+tw/2,margin+th-24);ctx.globalAlpha=1;}
       }
-      const hasPrize=( raffleType==='prize' || raffleType==='tirage' || raffleType==='esrifa' )&&document.getElementById('prizeImageUpload').files[0]&&!document.getElementById('prizeImageUpload').disabled;
+      const hasPrize = IMAGE_TYPES.has(raffleType) && document.getElementById('prizeImageUpload').files[0] && !document.getElementById('prizeImageUpload').disabled;
       const enlarge=!showDetails&&!hasPrize, sm=enlarge?1.2:1.0;
       // Letter format with prize image: use compact text so prize image gets more space
       const letterPrize = isLetter && hasPrize;
@@ -5655,7 +5676,7 @@ function generateStandardPoster() {
       const _afterSubY_ns = drawExtraTxtLine(ctx, _ns_S.extraTxt, rtx, subY, subFontSz, tw - 60, primaryColor);
       drawOrnDiv(ctx,rtx,_afterSubY_ns+Math.round(18*sm),tw*0.3,primaryColor);
       let dsY=_afterSubY_ns+Math.round(subFontSz*1.3);
-      if((raffleType==='prize'||raffleType==='tirage'||raffleType==='esrifa')&&hasPrize){
+      if (IMAGE_TYPES.has(raffleType) && hasPrize) {
         const pf=document.getElementById('prizeImageUpload').files[0];
         const pi=preloadedPrizeImg||new Image();
         function rp(){
@@ -5713,7 +5734,7 @@ function generateSimplePoster() {
   const showDetails = state.showDetails;
   const file = state.logoFile;
 
-  const prizeFileEarly = (raffleType==='prize' || raffleType==='tirage' || raffleType==='esrifa') ? state.prizeFile : null;
+  const prizeFileEarly = IMAGE_TYPES.has(raffleType) ? state.prizeFile : null;
   const hasPrizeFileEarly = prizeFileEarly && state.prizeInputActive;
 
   function doRender(preloadedPrizeImg) {
@@ -5815,7 +5836,7 @@ function generateSimplePoster() {
       // in the message zone) needs more room for the message; a plain layout
       // gives the identity zone (logo + org) a much bigger share so the logo
       // can fill the whitespace.
-      const _hasPrizeEarly = (raffleType === 'prize' || raffleType === 'tirage' || raffleType === 'esrifa') &&
+      const _hasPrizeEarly = IMAGE_TYPES.has(raffleType) &&
         document.getElementById('prizeImageUpload').files[0] &&
         !document.getElementById('prizeImageUpload').disabled;
       const compactLayout = showDetails || _hasPrizeEarly;
@@ -6458,7 +6479,7 @@ function generateSportPoster() {
 
     // 5. Does the right ticket need the raffle label above the shape?
     //    Only when a prize image is uploaded OR additional details are on.
-    const hasPrizeImg=(raffleType==='prize'||raffleType==='tirage'||raffleType==='esrifa')&&document.getElementById('prizeImageUpload').files[0]&&!document.getElementById('prizeImageUpload').disabled;
+    const hasPrizeImg = IMAGE_TYPES.has(raffleType) && document.getElementById('prizeImageUpload').files[0] && !document.getElementById('prizeImageUpload').disabled;
     const raffleAbove = hasPrizeImg || showDetails;
 
     // 6. Header zones — each ticket's space from its top edge to the top of its shape
