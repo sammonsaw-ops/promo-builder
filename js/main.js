@@ -5645,7 +5645,7 @@ function generateStandardPoster() {
             ? topAnchorY(ry, mainFontSz)
             : (enlarge ? ly+th/2-20 : ry + Math.round(th*0.35)));
       const rty = rtyBase;
-      ctx.fillStyle=primaryColor; ctx.textAlign='center'; ctx.strokeStyle=secondaryColor; ctx.lineWidth=0.5;
+      ctx.fillStyle=primaryColor; ctx.textAlign='center';
       const _ns_S = getRaffleStrings(raffleType);
       const mainTxt=_ns_S.mainTxt;
       const lts=(raffleType==='5050'||raffleType==='tirage5050'||raffleType==='es5050')?6*sm:8*sm;
@@ -5653,7 +5653,10 @@ function generateStandardPoster() {
       ctx.font=`bold ${_nsFittedSz}px Impact,"Arial Black",sans-serif`;
       const ltw=mainTxt.split('').reduce((s,l)=>s+ctx.measureText(l).width+_nsFittedLts,0)-_nsFittedLts;
       let xp=rtx-ltw/2;
-      mainTxt.split('').forEach(l=>{const lw=ctx.measureText(l).width;if(!isSingleColored)ctx.strokeText(l,xp+lw/2,rty);ctx.fillText(l,xp+lw/2,rty);xp+=lw+_nsFittedLts;});
+      // Fill-only pass — the 0.5px secondaryColor stroke that used to sit
+      // under the fill softened the letter edges (visible as blur in
+      // landscape Custom banners). Impact at these sizes is crisp on its own.
+      mainTxt.split('').forEach(l=>{const lw=ctx.measureText(l).width;ctx.fillText(l,xp+lw/2,rty);xp+=lw+_nsFittedLts;});
       // Portrait: cap sub relative to the fitted main so a small fitted main
       // (long Custom Text) doesn't get overrun by a fixed-size sub. Also floor
       // subY to guarantee a gap between main's descent and sub's ascent —
@@ -5675,12 +5678,16 @@ function generateStandardPoster() {
       const subY = Math.max(_baseSubY, _minSubY);
       ctx.font=`bold ${subFontSz}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
       if(_ns_S.subTxt){
-        if(!isSingleColored)ctx.strokeText(_ns_S.subTxt,rtx,subY);
+        // No stroke pass — same reason as main above.
         ctx.fillText(_ns_S.subTxt,rtx,subY);
       }
       const _afterSubY_ns = drawExtraTxtLine(ctx, _ns_S.extraTxt, rtx, subY, subFontSz, tw - 60, primaryColor);
-      drawOrnDiv(ctx,rtx,_afterSubY_ns+Math.round(18*sm),tw*0.3,primaryColor);
-      let dsY=_afterSubY_ns+Math.round(subFontSz*1.3);
+      const _ornY_ns = _afterSubY_ns + Math.round(18*sm);
+      drawOrnDiv(ctx,rtx,_ornY_ns,tw*0.3,primaryColor);
+      // dsY (image / details top) must sit BELOW the ornament — with a shrunk
+      // sub, subFontSz*1.3 can land above the ornament and the uploaded image
+      // ends up drawn on top of it. Take the max so ornament stays visible.
+      let dsY = Math.max(_afterSubY_ns + Math.round(subFontSz*1.3), _ornY_ns + 14);
       if (IMAGE_TYPES.has(raffleType) && hasPrize) {
         const pf=document.getElementById('prizeImageUpload').files[0];
         const pi=preloadedPrizeImg||new Image();
@@ -6689,7 +6696,13 @@ function generateSportPoster() {
 
     // Compute lines for org name and raffle label
     const orgBandLines = splitLabel(orgLabel, Math.round(BAND_H*0.45), tw - 32);
-    const raffleBandLines = splitLabel(rBandLabel, Math.round(BAND_H*0.45), tw - 32);
+    // Custom + image: the band moved to hold the raffle text, but the default
+    // bandLabel is main+sub concatenated as one string. Stack main / sub /
+    // extra as separate lines so they don't render as a run-on and the
+    // Additional Text isn't dropped.
+    const raffleBandLines = (raffleAbove && CUSTOM_TYPES.has(raffleType))
+      ? [_sp_S.mainTxt, _sp_S.subTxt, _sp_S.extraTxt].filter(Boolean)
+      : splitLabel(rBandLabel, Math.round(BAND_H*0.45), tw - 32);
 
     // drawOrgName: solid band at top of left ticket
     function drawOrgName(cx) {
@@ -6709,7 +6722,11 @@ function generateSportPoster() {
     // Coloured logos: run v54 background removal to strip any white/plain background.
     const _noLogo = !!img._synthetic;
     if (!_noLogo) {
-      const pad=0.72, sz=lShape.R*2*pad;
+      // Bounding box up to 90% of the shape diameter — clip pass below trims
+      // any corners that poke outside the circle, but the extra size lets the
+      // logo read at the same visual weight as it does in the Simple/Raffle
+      // banner types (previously capped near the inscribed square at 72%).
+      const pad=0.90, sz=lShape.R*2*pad;
       const sc=Math.min(sz/img.width,sz/img.height);
       const iw=img.width*sc, ih=img.height*sc;
       const logoToDraw = isLogoMostlyWhite(img) ? (() => {
