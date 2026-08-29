@@ -6722,11 +6722,17 @@ function generateSportPoster() {
     // Coloured logos: run v54 background removal to strip any white/plain background.
     const _noLogo = !!img._synthetic;
     if (!_noLogo) {
-      // Bounding box up to 90% of the shape diameter — clip pass below trims
-      // any corners that poke outside the circle, but the extra size lets the
-      // logo read at the same visual weight as it does in the Simple/Raffle
-      // banner types (previously capped near the inscribed square at 72%).
-      const pad=0.90, sz=lShape.R*2*pad;
+      // Aspect-aware pad — a fixed 0.9 works for wide/tall logos but clips
+      // the bottom-corner "team name" on near-square logos (like a crest with
+      // "ATLANTIC PIRATES" running the full width). Corner-safe pad is
+      // 1 / sqrt(1 + shortLong^2) — the largest bounding box whose corners
+      // sit exactly on the circle. We bump 10% since typical logos leave
+      // small transparent margins in the extreme corners, up to a 0.95 cap
+      // for very wide/tall images.
+      const shortLong = Math.min(img.width, img.height) / Math.max(img.width, img.height);
+      const cornerSafe = 1 / Math.sqrt(1 + shortLong * shortLong);
+      const pad = Math.min(0.95, cornerSafe * 1.10);
+      const sz = lShape.R * 2 * pad;
       const sc=Math.min(sz/img.width,sz/img.height);
       const iw=img.width*sc, ih=img.height*sc;
       const logoToDraw = isLogoMostlyWhite(img) ? (() => {
