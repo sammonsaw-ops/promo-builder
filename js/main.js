@@ -124,7 +124,7 @@ let currentLang = 'en';    // 'en', 'fr' or 'es' — driven by raffle type selec
 // ═══════════════════════════════════════════════════════════════════════
 const UI_STRINGS = {
   en: {
-    step0Title:'Select Language', step1Title:'Banner Type', step2Title:'Output Format', step3Title:'Organization Information', step4Title:'QR Code',
+    step0Title:'Select Language', step1Title:'Banner Type', step2Title:'Output Format', step3Title:'Organization Information', step4Title:'QR Code', step5Title:'Detailed Information',
     labelSelectLang:'Language',
     resetBtn:'Reset All Fields',
     resetConfirm:'Reset all fields? Your current banner will be cleared and cannot be recovered.',
@@ -193,7 +193,7 @@ const UI_STRINGS = {
     downloadReuseHint:'💾 <strong>Editable file:</strong> this PNG stores your form data. Keep the original and re-upload it here later — e.g. to swap in your approved licence number — without re-entering anything. Re-saving through other image tools may strip the embedded data.',
   },
   fr: {
-    step0Title:'Choisir la langue', step1Title:'Type de bannière', step2Title:'Format de sortie', step3Title:'Informations sur l\'organisme', step4Title:'Code QR',
+    step0Title:'Choisir la langue', step1Title:'Type de bannière', step2Title:'Format de sortie', step3Title:'Informations sur l\'organisme', step4Title:'Code QR', step5Title:'Informations détaillées',
     labelSelectLang:'Langue',
     resetBtn:'Tout réinitialiser',
     resetConfirm:'Réinitialiser tous les champs ? Votre bannière actuelle sera effacée et ne pourra pas être récupérée.',
@@ -262,7 +262,7 @@ const UI_STRINGS = {
     downloadReuseHint:'💾 <strong>Fichier modifiable :</strong> ce PNG contient les données de votre formulaire. Conservez l\'original et retéléversez-le ici plus tard — par ex. pour insérer votre numéro de licence approuvé — sans tout ressaisir. Le réenregistrement par un autre outil d\'image peut supprimer les données intégrées.',
   },
   es: {
-    step0Title:'Elegir el idioma', step1Title:'Tipo de bandera', step2Title:'Formato de salida', step3Title:'Información de la organización', step4Title:'Código QR',
+    step0Title:'Elegir el idioma', step1Title:'Tipo de bandera', step2Title:'Formato de salida', step3Title:'Información de la organización', step4Title:'Código QR', step5Title:'Información detallada',
     labelSelectLang:'Idioma',
     resetBtn:'Restablecer todo',
     resetConfirm:'¿Restablecer todos los campos? Su bandera actual se borrará y no podrá recuperarse.',
@@ -343,6 +343,7 @@ function applyUILanguage(lang) {
   _setText('step2Title', S.step2Title);
   _setText('step3Title', S.step3Title);
   _setText('step4Title', S.step4Title);
+  _setText('step5Title', S.step5Title);
 
   // Reset button label (localised)
   _setText('resetBtnLabel', S.resetBtn);
@@ -655,11 +656,15 @@ function togglePrizeImage() {
 
   // Custom promo types hide the whole raffle-details apparatus (prize image,
   // Include-Detailed-Information toggle, and every field it exposes) and show
-  // two free-text inputs that drive the banner headline instead.
+  // two free-text inputs that drive the banner headline instead. The entire
+  // Detailed Information step is hidden — no reason to show an empty step
+  // header when the toggle isn't applicable to Custom promos.
   const ctg  = document.getElementById('customTextGroup');
   const dtw  = document.getElementById('detailsToggleWrap');
+  const dts  = document.getElementById('detailsStep');
   if (ctg) ctg.style.display = isCustom ? '' : 'none';
   if (dtw) dtw.style.display = isCustom ? 'none' : '';
+  if (dts) dts.style.display = isCustom ? 'none' : '';
 
   // Relabel the image slot per promo type — same input serves both the
   // Prize Raffle prize photo and the Custom Text promo image. Rebuild via
